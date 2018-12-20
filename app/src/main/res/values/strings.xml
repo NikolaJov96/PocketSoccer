@@ -5,4 +5,6 @@
     <string name="new_game_button">new game</string>
     <string name="player_statistics_button">player statistics</string>
     <string name="settings_button">settings</string>
+    <string name="reset_all_stats_button">reset all stats</string>
+    <string name="back_button">back</string>
 </resources>
