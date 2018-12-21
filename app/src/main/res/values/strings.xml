@@ -7,4 +7,11 @@
     <string name="settings_button">settings</string>
     <string name="reset_all_stats_button">reset all stats</string>
     <string name="back_button">back</string>
+    <string name="timeout_radio">timeout</string>
+    <string name="score_radio">score</string>
+    <string name="end_game_radio_group">End game on:</string>
+    <string name="game_speed_seek_bar">Game speed</string>
+    <string name="left_field_option">Left field option</string>
+    <string name="right_field_option">Right field option</string>
+    <string name="selected_field_option">Selected field option</string>
 </resources>

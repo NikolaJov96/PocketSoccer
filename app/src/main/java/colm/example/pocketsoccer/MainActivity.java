@@ -25,7 +25,7 @@ class AssetLoader extends AsyncTask<MainActivity, Integer, Boolean> {
             percentage += 10;
             publishProgress(percentage);
             try {
-                Thread.sleep(300);
+                Thread.sleep(150);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
