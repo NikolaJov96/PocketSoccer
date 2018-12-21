@@ -11,8 +11,8 @@ public class AppPreferences {
 
     private static final int DEFAULT_FIELD_ID = 0;
     private static final String FIELD_ID = "FIELD_ID";
-    private static final int DEFAULT_END_GAME_CONTIDION = 0;
-    private static final String END_GAME_CONTIDION = "END_GAME_CONTIDION";
+    private static final int DEFAULT_END_GAME_CONDITION = 0;
+    private static final String END_GAME_CONDITION = "END_GAME_CONDITION";
     private static final int DEFAULT_GAME_SPEED = 1;
     private static final String GAME_SPEED = "GAME_SPEED";
 
@@ -27,7 +27,7 @@ public class AppPreferences {
     private AppPreferences() {
         SharedPreferences sp = MainActivity.mainActivity.getPreferences(Context.MODE_PRIVATE);
         fieldId = sp.getInt(FIELD_ID, DEFAULT_FIELD_ID);
-        endGameCondition = sp.getInt(END_GAME_CONTIDION, DEFAULT_END_GAME_CONTIDION);
+        endGameCondition = sp.getInt(END_GAME_CONDITION, DEFAULT_END_GAME_CONDITION);
         gameSpeed = sp.getInt(GAME_SPEED, DEFAULT_GAME_SPEED);
         storePreferences();
     }
@@ -36,14 +36,14 @@ public class AppPreferences {
         SharedPreferences sp = MainActivity.mainActivity.getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         editor.putInt(FIELD_ID, fieldId);
-        editor.putInt(END_GAME_CONTIDION, endGameCondition);
+        editor.putInt(END_GAME_CONDITION, endGameCondition);
         editor.putInt(GAME_SPEED, gameSpeed);
         editor.apply();
     }
 
     public void resetPreferences() {
         fieldId = DEFAULT_FIELD_ID;
-        endGameCondition = DEFAULT_END_GAME_CONTIDION;
+        endGameCondition = DEFAULT_END_GAME_CONDITION;
         gameSpeed = DEFAULT_GAME_SPEED;
         storePreferences();
     }
