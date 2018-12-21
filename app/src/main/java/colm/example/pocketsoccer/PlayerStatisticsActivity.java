@@ -1,5 +1,8 @@
 package colm.example.pocketsoccer;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,37 +11,26 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 
-class RecyclerViewItem {
+import java.util.List;
 
-    public String player1Name;
-    public String player2Name;
-    public int player1Score;
-    public int player2Score;
-
-    public RecyclerViewItem(String player1Name, String player2Name, int player1Score, int player2Score) {
-        this.player1Name = player1Name;
-        this.player2Name = player2Name;
-        this.player1Score = player1Score;
-        this.player2Score = player2Score;
-    }
-}
+import colm.example.pocketsoccer.database.entity.Score;
 
 class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
-    private RecyclerViewItem[] items;
+    private LiveData<List<Score>> scores;
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    private Context context;
 
-        public TextView player1Name;
-        public TextView player2Name;
-        public TextView score;
+    static class ViewHolder extends RecyclerView.ViewHolder {
 
-        public ViewHolder(View view) {
+        TextView player1Name;
+        TextView player2Name;
+        TextView score;
+
+        ViewHolder(View view) {
             super(view);
             this.player1Name = view.findViewById(R.id.item_p1);
             this.player2Name = view.findViewById(R.id.item_p2);
@@ -46,28 +38,35 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
         }
     }
 
-    public RecyclerViewAdapter(RecyclerViewItem[] items) {
-        this.items = items;
+    RecyclerViewAdapter(LiveData<List<Score>> scores, Context context) {
+        this.scores = scores;
+        this.context = context;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.recycler_view_item_layout, viewGroup, false);
-        ViewHolder vh = new ViewHolder(view);
-        return vh;
+        return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
-        viewHolder.player1Name.setText(items[i].player1Name);
-        viewHolder.player2Name.setText(items[i].player2Name);
-        viewHolder.score.setText(items[i].player1Score + " : " + items[i].player2Score);
+        viewHolder.player1Name.setText(scores.getValue().get(i).getFirstPlayerName());
+        viewHolder.player2Name.setText(scores.getValue().get(i).getSecondPlayerName());
+        viewHolder.score.setText(context.getString(
+                R.string.stats_score_string_template,
+                scores.getValue().get(i).getFirstPlayerScore(),
+                scores.getValue().get(i).getSecondPlayerScore()));
     }
 
     @Override
     public int getItemCount() {
-        return items.length;
+        if (scores.getValue() == null) {
+            return 0;
+        } else {
+            return scores.getValue().size();
+        }
     }
 
 }
@@ -81,37 +80,32 @@ public class PlayerStatisticsActivity extends AppCompatActivity {
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
+    private GameViewModel model;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player_statistics);
 
-        resetButton = findViewById(R.id.reset_stats_button);
-        resetButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // reset stats
-            }
+        model = ViewModelProviders.of(this).get(GameViewModel.class);
+        Context context = this;
+        model.getAllScores().observe(this, scores -> {
+            adapter = new RecyclerViewAdapter(model.getAllScores(), context);
+            recyclerView.setAdapter(adapter);
+            adapter.notifyDataSetChanged();
         });
 
+        resetButton = findViewById(R.id.reset_stats_button);
+        resetButton.setOnClickListener(v -> model.deleteAllScores());
+
         backButton = findViewById(R.id.back_stats_button);
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        backButton.setOnClickListener(v -> finish());
 
         recyclerView = findViewById(R.id.player_statistics_recycler_view);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
 
-        RecyclerViewItem items[] = new RecyclerViewItem[3];
-        items[0] = new RecyclerViewItem("Nikola", "Milos", 1, 2);
-        items[1] = new RecyclerViewItem("Nikola", "Petar", 3, 4);
-        items[2] = new RecyclerViewItem("Milos", "Petar", 5, 6);
-
-        adapter = new RecyclerViewAdapter(items);
+        adapter = new RecyclerViewAdapter(model.getAllScores(), this);
         recyclerView.setAdapter(adapter);
     }
 }

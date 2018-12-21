@@ -35,10 +35,16 @@ public class GameView extends View {
         if (!result) {
             if (event.getAction() == MotionEvent.ACTION_UP) {
                 Toast.makeText(getContext(), "view clicked", Toast.LENGTH_SHORT).show();
+                performClick();
                 result = true;
             }
         }
         return result;
+    }
+
+    @Override
+    public boolean performClick() {
+        return super.performClick();
     }
 
     @Override

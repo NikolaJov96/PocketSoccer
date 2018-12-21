@@ -20,38 +20,16 @@ public class MainMenuActivity extends AppCompatActivity {
 
         continueGameButton = findViewById(R.id.continue_game_button);
         // continueGameButton.setVisibility(View.GONE);
-        continueGameButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                continueGame(false);
-            }
-        });
+        continueGameButton.setOnClickListener(v -> continueGame(false));
 
         newGameButton = findViewById(R.id.new_game_button);
-        newGameButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                continueGame(true);
-            }
-        });
+        newGameButton.setOnClickListener(v -> continueGame(true));
 
         statisticsButton = findViewById(R.id.player_statistics_button);
-        statisticsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), PlayerStatisticsActivity.class);
-                startActivity(intent);
-            }
-        });
+        statisticsButton.setOnClickListener(v -> startActivity(new Intent(v.getContext(), PlayerStatisticsActivity.class)));
 
         settingsButton = findViewById(R.id.settings_button);
-        settingsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(v.getContext(), SettingsActivity.class);
-                startActivity(intent);
-            }
-        });
+        settingsButton.setOnClickListener(v -> startActivity(new Intent(v.getContext(), SettingsActivity.class)));
 
     }
 

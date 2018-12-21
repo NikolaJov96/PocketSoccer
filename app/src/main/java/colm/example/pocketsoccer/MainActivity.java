@@ -2,25 +2,28 @@ package colm.example.pocketsoccer;
 
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
-class AssetLoader extends AsyncTask<MainActivity, Integer, Boolean> {
+class AssetLoader extends AsyncTask<AssetLoader.LoaderHandler, Integer, Boolean> {
 
-    private int percentage;
-    private MainActivity mainActivity;
+    public interface LoaderHandler {
+        void onLoaderFinished(boolean success);
+        void updateSeekBar(int percentage);
+    }
+
+    private LoaderHandler loaderHandler;
 
     @Override
-    protected Boolean doInBackground(MainActivity... mainActivities) {
-        if (mainActivities.length != 1) {
+    protected Boolean doInBackground(LoaderHandler... loaderHandlers) {
+        if (loaderHandlers.length != 1) {
             return false;
         }
-        mainActivity = mainActivities[0];
-        percentage = 0;
+        loaderHandler = loaderHandlers[0];
+        int percentage = 0;
         for (int i = 0; i < 11; i++) {
             percentage += 10;
             publishProgress(percentage);
@@ -34,19 +37,19 @@ class AssetLoader extends AsyncTask<MainActivity, Integer, Boolean> {
     }
 
     @Override
-    protected void onPostExecute(Boolean aBoolean) {
-        super.onPostExecute(aBoolean);
-        mainActivity.onLoaderFinished(aBoolean);
+    protected void onPostExecute(Boolean success) {
+        super.onPostExecute(success);
+        loaderHandler.onLoaderFinished(success);
     }
 
     @Override
     protected void onProgressUpdate(Integer... values) {
         super.onProgressUpdate(values);
-        mainActivity.updateSeekBar(values[values.length - 1]);
+        loaderHandler.updateSeekBar(values[values.length - 1]);
     }
 }
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AssetLoader.LoaderHandler {
 
     private static int MAIN_MENU_REQUEST_CODE = 1;
 
@@ -63,22 +66,26 @@ public class MainActivity extends AppCompatActivity {
         new AssetLoader().execute(this);
     }
 
+    @Override
     public void updateSeekBar(int percentage) {
         seekBar.setProgress(percentage);
     }
 
-    public void onLoaderFinished(Boolean success) {
+    @Override
+    public void onLoaderFinished(boolean success) {
         if (success) {
             Intent intent = new Intent(this, MainMenuActivity.class);
             startActivityForResult(intent, MAIN_MENU_REQUEST_CODE);
         } else {
-            Toast.makeText(this, "Error loading game assets!", Toast.LENGTH_SHORT);
+            Toast.makeText(this, "Error loading game assets!", Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        finish();
+        if (requestCode == MAIN_MENU_REQUEST_CODE) {
+            finish();
+        }
     }
 }
