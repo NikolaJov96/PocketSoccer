@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import colm.example.pocketsoccer.game_model.GameViewModel;
 import colm.example.pocketsoccer.database.entity.Score;
 
 class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {

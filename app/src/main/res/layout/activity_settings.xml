@@ -1,98 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".SettingsActivity">
+    tools:context=".SettingsActivity"
+    android:orientation="vertical">
 
     <LinearLayout
-        android:id="@+id/settings_1"
-        android:layout_width="wrap_content"
+        android:id="@+id/settings_0"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/settings_2">
+        android:orientation="horizontal">
 
-        <ImageButton
-            android:id="@+id/left_field_button"
-            android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/reset_settings_button"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_left_button"
-            android:contentDescription="@string/left_field_option"/>
+            android:layout_weight="1"
+            android:text="@string/reset_all_settings_button"/>
 
-        <ImageView
-            android:id="@+id/field_view"
-            android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/back_settings_button"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:contentDescription="@string/selected_field_option"/>
-
-        <ImageButton
-            android:id="@+id/right_field_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_right_button"
-            android:contentDescription="@string/right_field_option"/>
+            android:layout_weight="1"
+            android:text="@string/back_button"/>
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/settings_2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/settings_1"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/settings_3">
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <TextView
+        <LinearLayout
+            android:id="@+id/settings_1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/end_game_radio_group"/>
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/settings_2">
 
-        <RadioGroup
+            <ImageButton
+                android:id="@+id/left_field_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_left_button"
+                android:contentDescription="@string/left_field_option"/>
+
+            <ImageView
+                android:id="@+id/field_view"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:contentDescription="@string/selected_field_option"/>
+
+            <ImageButton
+                android:id="@+id/right_field_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_right_button"
+                android:contentDescription="@string/right_field_option"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/settings_2"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/settings_1"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/settings_3">
 
-            <RadioButton
-                android:id="@+id/time_radio"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/timeout_radio"/>
+                android:text="@string/end_game_radio_group"/>
 
-            <RadioButton
-                android:id="@+id/score_radio"
+            <RadioGroup
+                android:id="@+id/end_game_radio_group"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/score_radio"/>
+                android:layout_height="wrap_content">
 
-        </RadioGroup>
+                <RadioButton
+                    android:id="@+id/time_radio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/timeout_radio"/>
 
-    </LinearLayout>
+                <RadioButton
+                    android:id="@+id/score_radio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/score_radio"/>
 
-    <LinearLayout
-        android:id="@+id/settings_3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/settings_2"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+            </RadioGroup>
 
-        <TextView
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/settings_3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/game_speed_seek_bar"/>
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/settings_2"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
 
-        <SeekBar
-            android:id="@+id/game_speed_seek_bar"
-            style="@style/Widget.AppCompat.SeekBar.Discrete"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/game_speed_seek_bar"/>
 
-    </LinearLayout>
+            <SeekBar
+                android:id="@+id/game_speed_seek_bar"
+                style="@style/Widget.AppCompat.SeekBar.Discrete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-</android.support.constraint.ConstraintLayout>
+        </LinearLayout>
+
+    </android.support.constraint.ConstraintLayout>
+
+</LinearLayout>

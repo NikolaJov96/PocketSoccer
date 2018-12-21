@@ -1,5 +1,6 @@
 package colm.example.pocketsoccer;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
@@ -8,62 +9,32 @@ import android.os.Bundle;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
-class AssetLoader extends AsyncTask<AssetLoader.LoaderHandler, Integer, Boolean> {
+import colm.example.pocketsoccer.game_model.GameAssetManager;
+import colm.example.pocketsoccer.game_model.GameViewModel;
 
-    public interface LoaderHandler {
-        void onLoaderFinished(boolean success);
-        void updateSeekBar(int percentage);
-    }
-
-    private LoaderHandler loaderHandler;
-
-    @Override
-    protected Boolean doInBackground(LoaderHandler... loaderHandlers) {
-        if (loaderHandlers.length != 1) {
-            return false;
-        }
-        loaderHandler = loaderHandlers[0];
-        int percentage = 0;
-        for (int i = 0; i < 11; i++) {
-            percentage += 10;
-            publishProgress(percentage);
-            try {
-                Thread.sleep(150);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        return true;
-    }
-
-    @Override
-    protected void onPostExecute(Boolean success) {
-        super.onPostExecute(success);
-        loaderHandler.onLoaderFinished(success);
-    }
-
-    @Override
-    protected void onProgressUpdate(Integer... values) {
-        super.onProgressUpdate(values);
-        loaderHandler.updateSeekBar(values[values.length - 1]);
-    }
-}
-
-public class MainActivity extends AppCompatActivity implements AssetLoader.LoaderHandler {
+public class MainActivity extends AppCompatActivity implements GameAssetManager.LoaderHandler {
 
     private static int MAIN_MENU_REQUEST_CODE = 1;
 
+    public static MainActivity mainActivity;
+
     public SeekBar seekBar;
+
+    private GameViewModel model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mainActivity = this;
+
         seekBar = findViewById(R.id.game_loading_seek_bar);
         seekBar.setEnabled(false);
 
-        new AssetLoader().execute(this);
+        model = ViewModelProviders.of(this).get(GameViewModel.class);
+
+
     }
 
     @Override

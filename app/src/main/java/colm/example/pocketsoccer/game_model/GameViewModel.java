@@ -1,11 +1,14 @@
-package colm.example.pocketsoccer;
+package colm.example.pocketsoccer.game_model;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
+import android.content.Context;
+import android.content.SharedPreferences;
 
 import java.util.List;
 
+import colm.example.pocketsoccer.MainActivity;
 import colm.example.pocketsoccer.database.entity.Score;
 import colm.example.pocketsoccer.repository.Repository;
 
@@ -15,13 +18,19 @@ public class GameViewModel extends AndroidViewModel {
 
     private LiveData<List<Score>> allScores;
 
+    private AppPreferences appPreferences;
+
+    private GameAssetManager gameAssetManager;
+
     public GameViewModel(Application application) {
         super(application);
         repository = new Repository(application);
         allScores = repository.getAllScores();
+        appPreferences = AppPreferences.getAppPreferences();
+        gameAssetManager = GameAssetManager.getGameAssetManager();
     }
 
-    LiveData<List<Score>> getAllScores() {
+    public LiveData<List<Score>> getAllScores() {
         return allScores;
     }
 
@@ -29,8 +38,15 @@ public class GameViewModel extends AndroidViewModel {
         repository.insertScore(score);
     }
 
-    void deleteAllScores() {
+    public void deleteAllScores() {
         repository.deleteAllScores();
     }
 
+    public AppPreferences getAppPreferences() {
+        return appPreferences;
+    }
+
+    public GameAssetManager getGameAssetManager() {
+        return gameAssetManager;
+    }
 }
