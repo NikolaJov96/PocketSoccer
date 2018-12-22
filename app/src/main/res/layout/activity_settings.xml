@@ -30,8 +30,9 @@
     </LinearLayout>
 
     <android.support.constraint.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_width="200dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="center">
 
         <LinearLayout
             android:id="@+id/settings_1"
@@ -77,7 +78,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/end_game_radio_group"/>
+                android:text="@string/end_game_radio_group"
+                android:layout_gravity="center"/>
 
             <RadioGroup
                 android:id="@+id/end_game_radio_group"
@@ -102,7 +104,7 @@
 
         <LinearLayout
             android:id="@+id/settings_3"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             app:layout_constraintTop_toBottomOf="@id/settings_2"
@@ -113,7 +115,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/game_speed_seek_bar"/>
+                android:text="@string/game_speed_seek_bar"
+                android:layout_gravity="center"/>
 
             <SeekBar
                 android:id="@+id/game_speed_seek_bar"

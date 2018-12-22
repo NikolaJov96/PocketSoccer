@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/player1_header_text"
+                android:layout_gravity="center"/>
+
+            <CheckBox
+                android:id="@+id/player1_cpu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cpu_checkbox"
+                android:layout_gravity="center"/>
+
+            <EditText
+                android:id="@+id/player1_name"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:text="@string/default_player1_name"
+                android:layout_gravity="center"
+                android:inputType="text"
+                android:importantForAutofill="no"
+                android:hint="@string/player_1_name_hint"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center">
+
+                <ImageButton
+                    android:id="@+id/left_flag1_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_left_button"
+                    android:contentDescription="@string/left_flag1_option"/>
+
+                <ImageView
+                    android:id="@+id/flag1_view"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:contentDescription="@string/selected_flag1_option"/>
+
+                <ImageButton
+                    android:id="@+id/right_flag1_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_right_button"
+                    android:contentDescription="@string/right_flag1_option"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/player2_header_text"
+                android:layout_gravity="center"/>
+
+            <CheckBox
+                android:id="@+id/player2_cpu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cpu_checkbox"
+                android:layout_gravity="center"/>
+
+            <EditText
+                android:id="@+id/player2_name"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:text="@string/default_player2_name"
+                android:layout_gravity="center"
+                android:inputType="text"
+                android:importantForAutofill="no"
+                android:hint="@string/player_2_name_hint"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center">
+
+                <ImageButton
+                    android:id="@+id/left_flag2_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_left_button"
+                    android:contentDescription="@string/left_flag2_option"/>
+
+                <ImageView
+                    android:id="@+id/flag2_view"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:contentDescription="@string/selected_flag2_option"/>
+
+                <ImageButton
+                    android:id="@+id/right_flag2_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_right_button"
+                    android:contentDescription="@string/right_flag2_option"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/cancel_new_game"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel_button"/>
+
+        <Button
+            android:id="@+id/start_new_game"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="@string/start_button"/>
+
+    </LinearLayout>
+
+</LinearLayout>

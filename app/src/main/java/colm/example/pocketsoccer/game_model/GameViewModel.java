@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import java.util.List;
 
 import colm.example.pocketsoccer.MainActivity;
+import colm.example.pocketsoccer.NewGameDialog;
 import colm.example.pocketsoccer.database.entity.Score;
 import colm.example.pocketsoccer.repository.Repository;
 
@@ -22,12 +23,15 @@ public class GameViewModel extends AndroidViewModel {
 
     private GameAssetManager gameAssetManager;
 
+    private Game game;
+
     public GameViewModel(Application application) {
         super(application);
         repository = new Repository(application);
         allScores = repository.getAllScores();
         appPreferences = AppPreferences.getAppPreferences();
         gameAssetManager = GameAssetManager.getGameAssetManager();
+        game = Game.getGame();
     }
 
     public LiveData<List<Score>> getAllScores() {
@@ -48,5 +52,14 @@ public class GameViewModel extends AndroidViewModel {
 
     public GameAssetManager getGameAssetManager() {
         return gameAssetManager;
+    }
+
+    public Game getGame() {
+        return game;
+    }
+
+    public Game newGame(NewGameDialog.NewGameDialogData data) {
+        game = Game.newGame(data);
+        return game;
     }
 }

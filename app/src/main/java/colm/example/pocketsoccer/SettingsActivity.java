@@ -16,6 +16,8 @@ import colm.example.pocketsoccer.game_model.GameViewModel;
 
 public class SettingsActivity extends AppCompatActivity {
 
+    private static final int NUMBER_OF_FIELDS = 3;
+
     private Button resetButton;
     private Button backButton;
     private ImageButton leftButton;
@@ -48,7 +50,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         leftButton = findViewById(R.id.left_field_button);
         leftButton.setOnClickListener(v -> {
-            ap.setFieldId((ap.getFieldId() + 2) % 3);
+            ap.setFieldId((ap.getFieldId() + NUMBER_OF_FIELDS - 1) % NUMBER_OF_FIELDS);
             updateFieldImage();
         });
 
@@ -56,7 +58,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         rightButton = findViewById(R.id.right_field_button);
         rightButton.setOnClickListener(v -> {
-            ap.setFieldId((ap.getFieldId() + 1) % 3);
+            ap.setFieldId((ap.getFieldId() + 1) % NUMBER_OF_FIELDS);
             updateFieldImage();
         });
 
@@ -101,7 +103,6 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void updateFieldImage() {
-        AssetManager am = this.getAssets();
         try {
             switch (ap.getFieldId()) {
                 case 0:

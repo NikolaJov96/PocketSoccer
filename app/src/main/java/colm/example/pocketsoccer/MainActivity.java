@@ -33,8 +33,6 @@ public class MainActivity extends AppCompatActivity implements GameAssetManager.
         seekBar.setEnabled(false);
 
         model = ViewModelProviders.of(this).get(GameViewModel.class);
-
-
     }
 
     @Override
