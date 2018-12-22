@@ -26,20 +26,24 @@ public class GameAssetManager {
             }
             loaderHandler = loaderHandlers[0];
             float percentage = 0.0f;
-            float percentageStep = 100.0f / 3.0f;
+            float percentageStep = 100.0f / (NUMBER_OF_FIELDS + NUMBER_OF_FLAGS + NUMBER_OF_BALLS);
             AssetManager am = MainActivity.mainActivity.getAssets();
 
             try {
 
-                parquetBMP = BitmapFactory.decodeStream(am.open("fields/parquet.jpg"));
-                percentage += percentageStep;
-                publishProgress((int)percentage);
+                for (int i = 0; i < NUMBER_OF_FIELDS; i++) {
+                    fields[i] = BitmapFactory.decodeStream(am.open("fields/f" + (i + 1) + ".jpg"));
+                    percentage += percentageStep;
+                    publishProgress((int) percentage);
+                }
 
-                concreteBMP = BitmapFactory.decodeStream(am.open("fields/concrete.jpg"));
-                percentage += percentageStep;
-                publishProgress((int)percentage);
+                for (int i = 0; i < NUMBER_OF_FLAGS; i++) {
+                    flags[i] = BitmapFactory.decodeStream(am.open("flags/f" + (i + 1) + ".png"));
+                    percentage += percentageStep;
+                    publishProgress((int)percentage);
+                }
 
-                grassBMP = BitmapFactory.decodeStream(am.open("fields/grass.jpg"));
+                ball = BitmapFactory.decodeStream(am.open("ball.png"));
                 percentage += percentageStep;
                 publishProgress((int)percentage);
 
@@ -63,17 +67,23 @@ public class GameAssetManager {
         }
     }
 
+    public static final int NUMBER_OF_FIELDS = 3;
+    public static final int NUMBER_OF_FLAGS = 5;
+    public static final int NUMBER_OF_BALLS = 1;
+
     private static GameAssetManager singletonGAM;
 
-    private Bitmap parquetBMP;
-    private Bitmap concreteBMP;
-    private Bitmap grassBMP;
+    private Bitmap fields[];
+    private Bitmap flags[];
+    private Bitmap ball;
 
     {
         singletonGAM = null;
     }
 
     private GameAssetManager() {
+        fields = new Bitmap[NUMBER_OF_FIELDS];
+        flags = new Bitmap[NUMBER_OF_FLAGS];
         new AssetLoader().execute(MainActivity.mainActivity);
     }
 
@@ -84,15 +94,15 @@ public class GameAssetManager {
         return singletonGAM;
     }
 
-    public Bitmap getParquetBMP() {
-        return parquetBMP;
+    public Bitmap getField(int id) {
+        return fields[id];
     }
 
-    public Bitmap getConcreteBMP() {
-        return concreteBMP;
+    public Bitmap getFlag(int id) {
+        return flags[id];
     }
 
-    public Bitmap getGrassBMP() {
-        return grassBMP;
+    public Bitmap getBall() {
+        return ball;
     }
 }

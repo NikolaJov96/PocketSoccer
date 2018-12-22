@@ -1,9 +1,6 @@
 package colm.example.pocketsoccer;
 
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
-import android.content.res.AssetManager;
-import android.database.CursorJoiner;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,13 +10,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.io.Serializable;
 
-import colm.example.pocketsoccer.game_model.GameViewModel;
+import colm.example.pocketsoccer.game_model.Game;
+import colm.example.pocketsoccer.game_model.GameAssetManager;
 
 public class NewGameDialog extends DialogFragment {
 
@@ -36,15 +35,15 @@ public class NewGameDialog extends DialogFragment {
         void onFinishNewGameDialog(NewGameDialogData data);
     }
 
-    private static final int NUMBER_OF_FLAGS = 5;
-
     private CheckBox checkBoxP1;
     private CheckBox checkBoxP2;
     private EditText editTextP1;
     private EditText editTextP2;
     private ImageButton btnLeftP1;
+    private ImageView flag1View;
     private ImageButton btnRightP1;
     private ImageButton btnLeftP2;
+    private ImageView flag2View;
     private ImageButton btnRightP2;
     private Button btnCancel;
     private Button btnStart;
@@ -56,7 +55,7 @@ public class NewGameDialog extends DialogFragment {
     public NewGameDialog() {
         data = new NewGameDialogData();
         data.p1Flag = 0;
-        data.p2Flag = 0;
+        data.p2Flag = 1;
     }
 
     @Override
@@ -98,25 +97,28 @@ public class NewGameDialog extends DialogFragment {
 
         editTextP2 = view.findViewById(R.id.player2_name);
 
+        int numberOfFlags = GameAssetManager.NUMBER_OF_FLAGS;
         btnLeftP1 = view.findViewById(R.id.left_flag1_button);
         btnLeftP1.setOnClickListener(v -> {
-            data.p1Flag = (data.p1Flag + NUMBER_OF_FLAGS - 1) % NUMBER_OF_FLAGS;
+            data.p1Flag = (data.p1Flag + numberOfFlags - 1) % numberOfFlags;
             updateImages();
         });
+        flag1View = view.findViewById(R.id.flag1_view);
         btnRightP1 = view.findViewById(R.id.right_flag1_button);
         btnRightP1.setOnClickListener(v -> {
-            data.p1Flag = (data.p1Flag + 1) % NUMBER_OF_FLAGS;
+            data.p1Flag = (data.p1Flag + 1) % numberOfFlags;
             updateImages();
         });
 
         btnLeftP2 = view.findViewById(R.id.left_flag2_button);
         btnLeftP2.setOnClickListener(v -> {
-            data.p2Flag = (data.p2Flag + NUMBER_OF_FLAGS - 1) % NUMBER_OF_FLAGS;
+            data.p2Flag = (data.p2Flag + numberOfFlags - 1) % numberOfFlags;
             updateImages();
         });
+        flag2View = view.findViewById(R.id.flag2_view);
         btnRightP2 = view.findViewById(R.id.right_flag2_button);
         btnRightP2.setOnClickListener(v -> {
-            data.p2Flag = (data.p2Flag + 1) % NUMBER_OF_FLAGS;
+            data.p2Flag = (data.p2Flag + 1) % numberOfFlags;
             updateImages();
         });
 
@@ -129,29 +131,28 @@ public class NewGameDialog extends DialogFragment {
             data.p2Name = editTextP2.getText().toString();
             data.p1Cpu = checkBoxP1.isChecked();
             data.p2Cpu = checkBoxP2.isChecked();
-            callbackListener.onFinishNewGameDialog(data);
-            dismiss();
+            if (data.p1Flag == data.p2Flag) {
+                Toast.makeText(view.getContext(), "Chose different flags!", Toast.LENGTH_SHORT).show();
+            } else if ((data.p1Name.equals("CPU 1") && !data.p1Cpu) || data.p1Name.equals("CPU 2") ||
+                    data.p2Name.equals("CPU 1") || (data.p2Name.equals("CPU 2") && !data.p2Cpu)) {
+                Toast.makeText(view.getContext(), "Can't use CPU reserved names for players!", Toast.LENGTH_SHORT).show();
+            } else if (data.p1Name == data.p2Name) {
+                Toast.makeText(view.getContext(), "Players can't have the same name!", Toast.LENGTH_SHORT).show();
+            } else {
+                callbackListener.onFinishNewGameDialog(data);
+                dismiss();
+            }
         });
+
+        updateImages();
 
         return view;
     }
 
     private void updateImages() {
-        /*try {
-            switch (data.p1Flag) {
-                case 0:
-                    fieldView.setImageBitmap(model.getGameAssetManager().getParquetBMP());
-                    break;
-                case 1:
-                    fieldView.setImageBitmap(model.getGameAssetManager().getConcreteBMP());
-                    break;
-                case 2:
-                    fieldView.setImageBitmap(model.getGameAssetManager().getGrassBMP());
-                    break;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
+        GameAssetManager gam = GameAssetManager.getGameAssetManager();
+        flag1View.setImageBitmap(gam.getFlag(data.p1Flag));
+        flag2View.setImageBitmap(gam.getFlag(data.p2Flag));
     }
 
 }

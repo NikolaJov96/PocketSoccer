@@ -151,18 +151,18 @@ public class Game extends Thread implements Serializable {
 
             if (gameView != null) {
                 for (int i = 0; i < 3; i++) {
-                    gameView.packPosX[i] = leftSpacing + players[0].packs[i].pos.x * gameView.effectiveWidth;
-                    gameView.packPosY[i] = topSpacing + players[0].packs[i].pos.y * gameView.effectiveWidth;
+                    gameView.packPosX[i] = (int)(leftSpacing + players[0].packs[i].pos.x * gameView.effectiveWidth);
+                    gameView.packPosY[i] = (int)(topSpacing + players[0].packs[i].pos.y * gameView.effectiveWidth);
                     gameView.packFlag[i] = players[0].flag;
                 }
                 for (int i = 0; i < 3; i++) {
-                    gameView.packPosX[i + 3] = leftSpacing + players[1].packs[i].pos.x * gameView.effectiveWidth;
-                    gameView.packPosY[i + 3] = topSpacing + players[1].packs[i].pos.y * gameView.effectiveWidth;
+                    gameView.packPosX[i + 3] = (int)(leftSpacing + players[1].packs[i].pos.x * gameView.effectiveWidth);
+                    gameView.packPosY[i + 3] = (int)(topSpacing + players[1].packs[i].pos.y * gameView.effectiveWidth);
                     gameView.packFlag[i + 3] = players[1].flag;
                 }
 
-                gameView.ballPosX = leftSpacing + ball.pos.x * gameView.effectiveWidth;
-                gameView.ballPosY = topSpacing + ball.pos.y * gameView.effectiveWidth;
+                gameView.ballPosX = (int)(leftSpacing + ball.pos.x * gameView.effectiveWidth);
+                gameView.ballPosY = (int)(topSpacing + ball.pos.y * gameView.effectiveWidth);
 
                 gameView.initialized = true;
                 gameView.invalidate();
@@ -217,10 +217,10 @@ public class Game extends Thread implements Serializable {
         gameView.effectiveWidth = gameView.getWidth() - 2 * leftSpacing;
         gameView.topSpacing = topSpacing;
         gameView.effectiveHeight = gameView.getHeight() - 2 * topSpacing;
-        gameView.goalHeight = GOAL_HEIGHT * gameView.effectiveWidth;
-        gameView.goalWidth = GOAL_WIDTH * gameView.effectiveWidth;
-        gameView.packRadius = PACK_RADIUS * gameView.effectiveWidth;
-        gameView.ballRadius = BALL_RADIUS * gameView.effectiveWidth;
+        gameView.goalHeight = (int)(GOAL_HEIGHT * gameView.effectiveWidth);
+        gameView.goalWidth = (int)(GOAL_WIDTH * gameView.effectiveWidth);
+        gameView.packRadius = (int)(PACK_RADIUS * gameView.effectiveWidth);
+        gameView.ballRadius = (int)(BALL_RADIUS * gameView.effectiveWidth);
     }
 
     public void clearGameView() {

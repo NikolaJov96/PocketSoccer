@@ -103,21 +103,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void updateFieldImage() {
-        try {
-            switch (ap.getFieldId()) {
-                case 0:
-                    fieldView.setImageBitmap(model.getGameAssetManager().getParquetBMP());
-                    break;
-                case 1:
-                    fieldView.setImageBitmap(model.getGameAssetManager().getConcreteBMP());
-                    break;
-                case 2:
-                    fieldView.setImageBitmap(model.getGameAssetManager().getGrassBMP());
-                    break;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        fieldView.setImageBitmap(model.getGameAssetManager().getField(ap.getFieldId()));
     }
 
     private void initGuiState() {

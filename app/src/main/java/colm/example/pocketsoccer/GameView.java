@@ -3,11 +3,14 @@ package colm.example.pocketsoccer;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
+
+import colm.example.pocketsoccer.game_model.GameAssetManager;
 
 public class GameView extends View {
 
@@ -19,9 +22,13 @@ public class GameView extends View {
     }
     GestureDetector detector = new GestureDetector(GameView.this.getContext(), new GestureListener());
 
+    private static final int PACK_BORDER_WIDTH = 5;
+
+    private GameAssetManager gam;
+    private Rect drawingRect;
+
     private Paint goalPaint;
-    private Paint playerPaint[];
-    private Paint ballPaint;
+    private Paint packPaint;
 
     public boolean initialized;
 
@@ -30,43 +37,36 @@ public class GameView extends View {
     public int topSpacing;
     public int effectiveHeight;
 
-    public float packPosX[];
-    public float packPosY[];
+    public int packPosX[];
+    public int packPosY[];
     public int packFlag[];
-    public float ballPosX;
-    public float ballPosY;
-    public float goalHeight;
-    public float goalWidth;
-    public float packRadius;
-    public float ballRadius;
+    public int ballPosX;
+    public int ballPosY;
+    public int goalHeight;
+    public int goalWidth;
+    public int packRadius;
+    public int ballRadius;
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
+
+        gam = GameAssetManager.getGameAssetManager();
+        drawingRect = new Rect();
 
         goalPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         goalPaint.setStyle(Paint.Style.STROKE);
         goalPaint.setStrokeWidth(10);
         goalPaint.setColor(0xff000000);
 
-        playerPaint = new Paint[2];
-        playerPaint[0] = new Paint(Paint.ANTI_ALIAS_FLAG);
-        playerPaint[0].setStyle(Paint.Style.FILL);
-        playerPaint[0].setStrokeWidth(10);
-        playerPaint[0].setColor(0xffff0000);
-        playerPaint[1] = new Paint(Paint.ANTI_ALIAS_FLAG);
-        playerPaint[1].setStyle(Paint.Style.FILL);
-        playerPaint[1].setStrokeWidth(10);
-        playerPaint[1].setColor(0xff00ff00);
-
-        ballPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        ballPaint.setStyle(Paint.Style.FILL);
-        ballPaint.setStrokeWidth(10);
-        ballPaint.setColor(0xff0000ff);
+        packPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        packPaint.setStyle(Paint.Style.FILL);
+        packPaint.setStrokeWidth(10);
+        packPaint.setColor(0xff000000);
 
         initialized = false;
 
-        packPosX = new float[6];
-        packPosY = new float[6];
+        packPosX = new int[6];
+        packPosY = new int[6];
         packFlag = new int[6];
     }
 
@@ -97,7 +97,7 @@ public class GameView extends View {
 
         canvas.drawRect(leftSpacing, topSpacing, getWidth() - leftSpacing, getHeight() - topSpacing, goalPaint);
 
-        int goalTopY = (int)(getHeight() - goalHeight) / 2;
+        int goalTopY = (getHeight() - goalHeight) / 2;
         int goalBottomY = getHeight() - goalTopY;
         canvas.drawLine(leftSpacing, goalTopY, leftSpacing + goalWidth, goalTopY, goalPaint);
         canvas.drawLine(getWidth() - leftSpacing, goalTopY, getWidth() - leftSpacing - goalWidth, goalTopY, goalPaint);
@@ -105,8 +105,19 @@ public class GameView extends View {
         canvas.drawLine(getWidth() - leftSpacing, goalBottomY, getWidth() - leftSpacing - goalWidth, goalBottomY, goalPaint);
 
         for (int i = 0; i < 6; i++) {
-            canvas.drawCircle(packPosX[i], packPosY[i], packRadius, playerPaint[i / 3]);
+            drawingRect.left = packPosX[i] - packRadius + PACK_BORDER_WIDTH;
+            drawingRect.right = packPosX[i] + packRadius - PACK_BORDER_WIDTH;
+            drawingRect.top = packPosY[i] - packRadius + PACK_BORDER_WIDTH;
+            drawingRect.bottom = packPosY[i] + packRadius - PACK_BORDER_WIDTH;
+            canvas.drawCircle(packPosX[i], packPosY[i], packRadius, packPaint);
+            canvas.drawBitmap(gam.getFlag(packFlag[i]), null, drawingRect, packPaint);
         }
-        canvas.drawCircle(ballPosX, ballPosY, ballRadius, ballPaint);
+
+        drawingRect.left = ballPosX - ballRadius + PACK_BORDER_WIDTH;
+        drawingRect.right = ballPosX + ballRadius - PACK_BORDER_WIDTH;
+        drawingRect.top = ballPosY - ballRadius + PACK_BORDER_WIDTH;
+        drawingRect.bottom = ballPosY + ballRadius - PACK_BORDER_WIDTH;
+        canvas.drawCircle(ballPosX, ballPosY, ballRadius, packPaint);
+        canvas.drawBitmap(gam.getBall(), null, drawingRect, packPaint);
     }
 }
