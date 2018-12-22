@@ -55,6 +55,7 @@ public class GameViewModel extends AndroidViewModel {
     }
 
     public Game getGame() {
+        game = Game.getGame();
         return game;
     }
 

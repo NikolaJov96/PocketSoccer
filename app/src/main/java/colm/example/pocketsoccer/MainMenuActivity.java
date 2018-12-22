@@ -5,6 +5,7 @@ import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,6 +15,8 @@ import android.widget.Button;
 import colm.example.pocketsoccer.game_model.GameViewModel;
 
 public class MainMenuActivity extends AppCompatActivity implements NewGameDialog.NewGameDialogListener {
+
+    private static final int GAME_ACTIVITY_REQUEST_CODE = 1;
 
     private Button continueGameButton;
     private Button newGameButton;
@@ -30,7 +33,9 @@ public class MainMenuActivity extends AppCompatActivity implements NewGameDialog
         model = ViewModelProviders.of(this).get(GameViewModel.class);
 
         continueGameButton = findViewById(R.id.continue_game_button);
-        // continueGameButton.setVisibility(View.GONE);
+        if (model.getGame() == null) {
+            continueGameButton.setVisibility(View.GONE);
+        }
         continueGameButton.setOnClickListener(v -> continueGame(false));
 
         newGameButton = findViewById(R.id.new_game_button);
@@ -45,16 +50,28 @@ public class MainMenuActivity extends AppCompatActivity implements NewGameDialog
     }
 
     private void continueGame(boolean forceNewGame) {
-        if (/*no game || */forceNewGame) {
+        if (model.getGame() == null || forceNewGame) {
             FragmentManager fm = getSupportFragmentManager();
             NewGameDialog newGameDialog = new NewGameDialog();
             newGameDialog.show(fm, "new_game_dialog");
+        } else if (model.getGame() != null) {
+            startActivityForResult(new Intent(this, GameActivity.class), GAME_ACTIVITY_REQUEST_CODE);
         }
     }
 
     @Override
     public void onFinishNewGameDialog(NewGameDialog.NewGameDialogData data) {
         model.newGame(data);
-        startActivity(new Intent(this, GameActivity.class));
+        startActivityForResult(new Intent(this, GameActivity.class), GAME_ACTIVITY_REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (model.getGame() == null) {
+            continueGameButton.setVisibility(View.GONE);
+        } else {
+            continueGameButton.setVisibility(View.VISIBLE);
+        }
     }
 }
