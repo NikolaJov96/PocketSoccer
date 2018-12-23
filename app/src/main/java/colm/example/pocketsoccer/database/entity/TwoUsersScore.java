@@ -5,11 +5,7 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
-@Entity(tableName = "score")
-public class Score {
-
-    @PrimaryKey(autoGenerate = true)
-    private int id;
+public class TwoUsersScore {
 
     @NonNull
     @ColumnInfo(name = "first_player_name")
@@ -19,13 +15,13 @@ public class Score {
     @ColumnInfo(name = "second_player_name")
     private String secondPlayerName;
 
-    @ColumnInfo(name = "first_player_score")
+    @ColumnInfo(name = "first_player_wins")
     private int firstPlayerScore;
 
-    @ColumnInfo(name = "second_player_score")
+    @ColumnInfo(name = "second_player_wins")
     private int secondPlayerScore;
 
-    public Score(@NonNull String firstPlayerName, @NonNull String secondPlayerName, int firstPlayerScore, int secondPlayerScore) {
+    public TwoUsersScore(@NonNull String firstPlayerName, @NonNull String secondPlayerName, int firstPlayerScore, int secondPlayerScore) {
         this.firstPlayerName = firstPlayerName;
         this.secondPlayerName = secondPlayerName;
         this.firstPlayerScore = firstPlayerScore;
@@ -64,13 +60,5 @@ public class Score {
 
     public void setSecondPlayerScore(int secondPlayerScore) {
         this.secondPlayerScore = secondPlayerScore;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 }

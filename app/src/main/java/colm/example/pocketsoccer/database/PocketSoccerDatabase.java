@@ -11,7 +11,7 @@ import android.support.annotation.NonNull;
 import colm.example.pocketsoccer.database.dao.ScoreDao;
 import colm.example.pocketsoccer.database.entity.Score;
 
-@Database(entities = {Score.class}, version = 1, exportSchema = false)
+@Database(entities = {Score.class}, version = 2, exportSchema = false)
 public abstract class PocketSoccerDatabase extends RoomDatabase {
 
     private static PocketSoccerDatabase singletonDB;
@@ -61,9 +61,23 @@ public abstract class PocketSoccerDatabase extends RoomDatabase {
 
         @Override
         protected Void doInBackground(final Void... params) {
-            scoreDao.insert(new Score("Pera", "Zika", 10, 20));
-            scoreDao.insert(new Score("Mika", "Pera", 20, 10));
-            scoreDao.insert(new Score("Mika", "Zika", 30, 30));
+            if (scoreDao.getNumberOfGames() == 0) {
+                scoreDao.insert(new Score("Pera", "Zika", 1, 3));
+                scoreDao.insert(new Score("Pera", "Zika", 1, 2));
+                scoreDao.insert(new Score("Pera", "Zika", 2, 1));
+                scoreDao.insert(new Score("Pera", "Zika", 2, 3));
+
+                scoreDao.insert(new Score("Mika", "Pera", 1, 3));
+                scoreDao.insert(new Score("Mika", "Pera", 2, 2));
+                scoreDao.insert(new Score("Mika", "Pera", 3, 0));
+                scoreDao.insert(new Score("Mika", "Pera", 2, 2));
+
+                scoreDao.insert(new Score("Mika", "Zika", 0, 2));
+                scoreDao.insert(new Score("Mika", "Zika", 3, 2));
+                scoreDao.insert(new Score("Mika", "Zika", 3, 3));
+                scoreDao.insert(new Score("Mika", "Zika", 1, 3));
+                scoreDao.insert(new Score("Mika", "Zika", 2, 0));
+            }
             return null;
         }
     }

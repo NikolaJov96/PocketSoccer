@@ -16,12 +16,12 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import colm.example.pocketsoccer.database.entity.TwoUsersScore;
 import colm.example.pocketsoccer.game_model.GameViewModel;
-import colm.example.pocketsoccer.database.entity.Score;
 
 class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
 
-    private LiveData<List<Score>> scores;
+    private LiveData<List<TwoUsersScore>> scores;
 
     private Context context;
 
@@ -39,7 +39,7 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
         }
     }
 
-    RecyclerViewAdapter(LiveData<List<Score>> scores, Context context) {
+    RecyclerViewAdapter(LiveData<List<TwoUsersScore>> scores, Context context) {
         this.scores = scores;
         this.context = context;
     }
@@ -90,8 +90,8 @@ public class PlayerStatisticsActivity extends AppCompatActivity {
 
         model = ViewModelProviders.of(this).get(GameViewModel.class);
         Context context = this;
-        model.getAllScores().observe(this, scores -> {
-            adapter = new RecyclerViewAdapter(model.getAllScores(), context);
+        model.getAllTwoPlayerScores().observe(this, scores -> {
+            adapter = new RecyclerViewAdapter(model.getAllTwoPlayerScores(), context);
             recyclerView.setAdapter(adapter);
             adapter.notifyDataSetChanged();
         });
@@ -106,7 +106,7 @@ public class PlayerStatisticsActivity extends AppCompatActivity {
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
 
-        adapter = new RecyclerViewAdapter(model.getAllScores(), this);
+        adapter = new RecyclerViewAdapter(model.getAllTwoPlayerScores(), this);
         recyclerView.setAdapter(adapter);
     }
 }

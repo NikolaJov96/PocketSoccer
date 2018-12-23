@@ -11,6 +11,7 @@ import java.util.List;
 import colm.example.pocketsoccer.MainActivity;
 import colm.example.pocketsoccer.NewGameDialog;
 import colm.example.pocketsoccer.database.entity.Score;
+import colm.example.pocketsoccer.database.entity.TwoUsersScore;
 import colm.example.pocketsoccer.repository.Repository;
 
 public class GameViewModel extends AndroidViewModel {
@@ -18,6 +19,7 @@ public class GameViewModel extends AndroidViewModel {
     private Repository repository;
 
     private LiveData<List<Score>> allScores;
+    private LiveData<List<TwoUsersScore>> allTwoPlayerScores;
 
     private AppPreferences appPreferences;
 
@@ -29,6 +31,7 @@ public class GameViewModel extends AndroidViewModel {
         super(application);
         repository = new Repository(application);
         allScores = repository.getAllScores();
+        allTwoPlayerScores = repository.getAllTwoPlayerScores();
         appPreferences = AppPreferences.getAppPreferences();
         gameAssetManager = GameAssetManager.getGameAssetManager();
         game = Game.getGame();
@@ -38,12 +41,20 @@ public class GameViewModel extends AndroidViewModel {
         return allScores;
     }
 
+    public LiveData<List<TwoUsersScore>> getAllTwoPlayerScores() {
+        return allTwoPlayerScores;
+    }
+
     void insert(Score score) {
         repository.insertScore(score);
     }
 
     public void deleteAllScores() {
         repository.deleteAllScores();
+    }
+
+    public void deleteTowPlayers(String player1, String player2) {
+        repository.deleteTowPlayers(player1, player2);
     }
 
     public AppPreferences getAppPreferences() {
@@ -59,8 +70,7 @@ public class GameViewModel extends AndroidViewModel {
         return game;
     }
 
-    public Game newGame(NewGameDialog.NewGameDialogData data) {
+    public void newGame(NewGameDialog.NewGameDialogData data) {
         game = Game.newGame(data);
-        return game;
     }
 }
