@@ -137,10 +137,6 @@ public class Game extends Thread implements Serializable {
 
         clickedPack = null;
 
-        allPacks[1].pos.x = allPacks[5].pos.x + 10 * PACK_RADIUS;
-        allPacks[1].pos.y = allPacks[5].pos.y - 1.95f * PACK_RADIUS;
-        allPacks[1].vel.x = -0.7f;
-
         start();
     }
 
