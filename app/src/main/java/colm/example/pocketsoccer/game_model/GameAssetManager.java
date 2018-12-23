@@ -26,7 +26,7 @@ public class GameAssetManager {
             }
             loaderHandler = loaderHandlers[0];
             float percentage = 0.0f;
-            float percentageStep = 100.0f / (NUMBER_OF_FIELDS + NUMBER_OF_FLAGS + NUMBER_OF_BALLS);
+            float percentageStep = 100.0f / (NUMBER_OF_FIELDS + 2 * NUMBER_OF_FLAGS + NUMBER_OF_BALLS);
             AssetManager am = MainActivity.mainActivity.getAssets();
 
             try {
@@ -39,6 +39,12 @@ public class GameAssetManager {
 
                 for (int i = 0; i < NUMBER_OF_FLAGS; i++) {
                     flags[i] = BitmapFactory.decodeStream(am.open("flags/f" + (i + 1) + ".png"));
+                    percentage += percentageStep;
+                    publishProgress((int)percentage);
+                }
+
+                for (int i = 0; i < NUMBER_OF_FLAGS; i++) {
+                    grayFlags[i] = BitmapFactory.decodeStream(am.open("flags/f" + (i + 1) + "g.png"));
                     percentage += percentageStep;
                     publishProgress((int)percentage);
                 }
@@ -75,6 +81,7 @@ public class GameAssetManager {
 
     private Bitmap fields[];
     private Bitmap flags[];
+    private Bitmap grayFlags[];
     private Bitmap ball;
 
     {
@@ -84,6 +91,7 @@ public class GameAssetManager {
     private GameAssetManager() {
         fields = new Bitmap[NUMBER_OF_FIELDS];
         flags = new Bitmap[NUMBER_OF_FLAGS];
+        grayFlags = new Bitmap[NUMBER_OF_FLAGS];
         new AssetLoader().execute(MainActivity.mainActivity);
     }
 
@@ -100,6 +108,10 @@ public class GameAssetManager {
 
     public Bitmap getFlag(int id) {
         return flags[id];
+    }
+
+    public Bitmap getGrayFlag(int id) {
+        return grayFlags[id];
     }
 
     public Bitmap getBall() {

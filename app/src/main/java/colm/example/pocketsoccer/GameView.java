@@ -50,6 +50,7 @@ public class GameView extends View {
     public int timer;
     public int leftSocre;
     public int rightScore;
+    public Game.Side turn;
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -125,7 +126,11 @@ public class GameView extends View {
             drawingRect.top = packPosY[i] - packRadius + PACK_BORDER_WIDTH;
             drawingRect.bottom = packPosY[i] + packRadius - PACK_BORDER_WIDTH;
             canvas.drawCircle(packPosX[i], packPosY[i], packRadius, packPaint);
-            canvas.drawBitmap(gam.getFlag(packFlag[i]), null, drawingRect, packPaint);
+            if (i < 3 && turn == Game.Side.LEFT || i >= 3 && turn == Game.Side.RIGHT) {
+                canvas.drawBitmap(gam.getFlag(packFlag[i]), null, drawingRect, packPaint);
+            } else {
+                canvas.drawBitmap(gam.getGrayFlag(packFlag[i]), null, drawingRect, packPaint);
+            }
         }
 
         drawingRect.left = ballPosX - ballRadius + PACK_BORDER_WIDTH;

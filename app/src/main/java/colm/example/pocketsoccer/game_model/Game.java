@@ -2,7 +2,9 @@ package colm.example.pocketsoccer.game_model;
 
 import android.os.SystemClock;
 
+import java.io.RandomAccessFile;
 import java.io.Serializable;
+import java.util.Random;
 
 import colm.example.pocketsoccer.GameView;
 import colm.example.pocketsoccer.NewGameDialog;
@@ -19,6 +21,7 @@ public class Game extends Thread implements Serializable {
     private static final float BALL_RADIUS = FIELD_WIDTH * 0.025f;
     private static final float PACK_RADIUS = FIELD_WIDTH * 0.05f;
 
+    private static final int TURN_TIME = 1000 * 5;
     private static final int ITERATION_TIME = 1000 / 60;
     private static final long MAX_GAME_DURATION = 1000 * 60 * 3;
     private static final int GOALS_FOR_THE_WIN = 3;
@@ -30,7 +33,7 @@ public class Game extends Thread implements Serializable {
 
     private static final long SCORE_SLEEP_TIME = 2500;
 
-    private enum Side { LEFT, RIGHT }
+    public enum Side { LEFT, RIGHT }
 
     private enum PlayerType { HUMAN, CPU }
 
@@ -124,13 +127,15 @@ public class Game extends Thread implements Serializable {
     private Pack allPacks[];
 
     private long accumulatedGameDuration;
+    private long accumulatedTurnDuration;
     private long timeOfLastResume;
+    private long timeOfTurnChange;
     private long lastUpdateTime;
 
     private boolean running;
     private boolean finished;
 
-    private Side winner;
+    private Side turn;
 
     private Pack clickedPack;
     private float clickedX;
@@ -158,10 +163,12 @@ public class Game extends Thread implements Serializable {
         allPacks[6] = ball;
 
         accumulatedGameDuration = 0;
+        accumulatedTurnDuration = 0;
         lastUpdateTime = SystemClock.elapsedRealtime();
         running = false;
         finished = false;
-        winner = null;
+
+        turn = Side.LEFT;
 
         gameView = null;
 
@@ -185,6 +192,10 @@ public class Game extends Thread implements Serializable {
             long iterationStartTime = SystemClock.elapsedRealtime();
 
             synchronized (this) {
+                if (accumulatedTurnDuration + SystemClock.elapsedRealtime() - timeOfTurnChange > TURN_TIME) {
+                    changeTurn();
+                }
+
                 // update pack and ball positions
                 float dt = (SystemClock.elapsedRealtime() - lastUpdateTime) * 0.001f * (1.0f + apGameSpeed * GAME_SEPPD_COEFFICIENT);
                 for (int i = 0; i < 7; i++) {
@@ -372,14 +383,20 @@ public class Game extends Thread implements Serializable {
         }
 
         if (accumulatedGameDuration + SystemClock.elapsedRealtime() - timeOfLastResume > MAX_GAME_DURATION) {
-            winner = null;
-            if (players[0].goals > players[1].goals) {
-                winner = Side.LEFT;
-            } else if (players[1].goals > players[0].goals) {
-                winner = Side.RIGHT;
-            }
             finalizeGame();
         }
+    }
+
+    private void changeTurn() {
+        clickedPack = null;
+        if (turn == Side.LEFT) {
+            turn = Side.RIGHT;
+        } else {
+            turn = Side.LEFT;
+        }
+        timeOfTurnChange = SystemClock.elapsedRealtime();
+        accumulatedTurnDuration = 0;
+        gameView.turn = turn;
     }
 
     private void finalizeGame() {
@@ -396,11 +413,6 @@ public class Game extends Thread implements Serializable {
         }
         if (apEndGameCondition.equals(AppPreferences.EndGameConditions.SCORE) &&
                 (players[0].goals >= GOALS_FOR_THE_WIN || players[1].goals >= GOALS_FOR_THE_WIN)) {
-            if (players[0].goals > GOALS_FOR_THE_WIN) {
-                winner = Side.LEFT;
-            } else {
-                winner = Side.RIGHT;
-            }
             finalizeGame();
         } else {
             goalScored = false;
@@ -438,6 +450,7 @@ public class Game extends Thread implements Serializable {
     public synchronized void resumeGame(GameEndListener gameEndListener) {
         this.gameEndListener = gameEndListener;
         timeOfLastResume = SystemClock.elapsedRealtime();
+        timeOfTurnChange = SystemClock.elapsedRealtime();
         running = true;
         notifyAll();
     }
@@ -445,6 +458,7 @@ public class Game extends Thread implements Serializable {
     public void pauseGame() {
         gameEndListener = null;
         accumulatedGameDuration += SystemClock.elapsedRealtime() - timeOfLastResume;
+        accumulatedTurnDuration += SystemClock.elapsedRealtime() - timeOfTurnChange;
         running = false;
     }
 
@@ -457,13 +471,15 @@ public class Game extends Thread implements Serializable {
         clickedX = ((float)x - leftSpacing) / gameView.effectiveWidth;
         clickedY = ((float)y - topSpacing) / gameView.effectiveWidth;
         clickedPack = null;
-        for (int p = 0; p < 2; p++) {
-            for (int i = 0; i < 3; i++) {
-                float distSq = dstSq(clickedX, clickedY, players[p].packs[i].pos.x, players[p].packs[i].pos.y);
-                if (distSq < PACK_RADIUS * PACK_RADIUS) {
-                    clickedPack = players[p].packs[i];
-                    return;
-                }
+        int p = 0;
+        if (turn == Side.RIGHT) {
+            p = 1;
+        }
+        for (int i = 0; i < 3; i++) {
+            float distSq = dstSq(clickedX, clickedY, players[p].packs[i].pos.x, players[p].packs[i].pos.y);
+            if (distSq < PACK_RADIUS * PACK_RADIUS) {
+                clickedPack = players[p].packs[i];
+                return;
             }
         }
     }
@@ -474,7 +490,7 @@ public class Game extends Thread implements Serializable {
         if (clickedPack != null) {
             clickedPack.vel.x += (relX - clickedX) * KICK_COEFFICIENT;
             clickedPack.vel.y += (relY - clickedY) * KICK_COEFFICIENT;
-            clickedPack = null;
+            changeTurn();
         }
     }
 
@@ -504,6 +520,7 @@ public class Game extends Thread implements Serializable {
         gameView.goalWidth = (int)(GOAL_WIDTH * gameView.effectiveWidth);
         gameView.packRadius = (int)(PACK_RADIUS * gameView.effectiveWidth);
         gameView.ballRadius = (int)(BALL_RADIUS * gameView.effectiveWidth);
+        gameView.turn = turn;
     }
 
     public void clearGameView() {
