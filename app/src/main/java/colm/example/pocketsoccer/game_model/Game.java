@@ -1,5 +1,6 @@
 package colm.example.pocketsoccer.game_model;
 
+import android.os.AsyncTask;
 import android.os.SystemClock;
 
 import java.io.Serializable;
@@ -25,6 +26,8 @@ public class Game extends Thread implements Serializable {
     private static final float SPEED_BLEED_COEFFICIENT = 0.992f;
     private static final float BOUNCE_BLEED_COEFFICIENT = 0.93F;
 
+    private static final long SCORE_SLEEP_TIME = 2500;
+
     private enum Side { LEFT, RIGHT }
 
     private enum PlayerType { HUMAN, CPU }
@@ -45,24 +48,33 @@ public class Game extends Thread implements Serializable {
 
     private static class Pack implements Serializable {
 
+        private Vec2 initPos;
+        private Vec2 initVel;
         Vec2 pos;
         Vec2 vel;
         float rotation;
         float radius;
 
         Pack(Vec2 pos, float radius) {
-            this.pos = pos;
-            this.vel = new Vec2(0.0f, 0.0f);
-            this.rotation = 0.0f;
+            this.initPos = new Vec2(pos.x, pos.y);
+            this.initVel = new Vec2(0.0f, 0.0f);
+            reinitPositions();
             this.radius = radius;
         }
 
         public Pack(Vec2 pos, Vec2 vel, float radius) {
-            this.pos = pos;
-            this.vel = vel;
-            this.rotation = 0.0f;
+            this.initPos = new Vec2(pos.x, pos.y);
+            this.initVel = new Vec2(vel.x, vel.y);
+            reinitPositions();
             this.radius = radius;
         }
+
+        void reinitPositions() {
+            this.pos = new Vec2(initPos.x, initPos.y);
+            this.vel = new Vec2(initVel.x, initVel.y);
+            this.rotation = 0.0f;
+        }
+
 
     }
 
@@ -112,6 +124,7 @@ public class Game extends Thread implements Serializable {
     private Pack clickedPack;
     private float clickedX;
     private float clickedY;
+    private boolean goalScored;
 
     private Game(NewGameDialog.NewGameDialogData data) {
         players = new Player[2];
@@ -137,6 +150,7 @@ public class Game extends Thread implements Serializable {
         gameView = null;
 
         clickedPack = null;
+        goalScored = false;
 
         start();
     }
@@ -282,21 +296,28 @@ public class Game extends Thread implements Serializable {
 
             }
 
-            boolean scored = false;
-            if (ball.pos.x > 0 && ball.pos.x < GOAL_WIDTH &&
-                    ball.pos.y > (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f &&
-                    ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
-                scored = true;
-                players[1].goals++;
-            }
-            if (ball.pos.x > FIELD_WIDTH - GOAL_WIDTH && ball.pos.x < FIELD_WIDTH &&
-                    ball.pos.y > (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f &&
-                    ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
-                scored = true;
-                players[2].goals++;
-            }
-            if (scored) {
-                // check end game condition
+            if (!goalScored) {
+                boolean scored = false;
+                if (ball.pos.x > 0 && ball.pos.x < GOAL_WIDTH &&
+                        ball.pos.y > (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f &&
+                        ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
+                    scored = true;
+                    players[0].goals++;
+                }
+                if (ball.pos.x > FIELD_WIDTH - GOAL_WIDTH && ball.pos.x < FIELD_WIDTH &&
+                        ball.pos.y > (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f &&
+                        ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
+                    scored = true;
+                    players[1].goals++;
+                }
+                if (scored) {
+                    new Thread(() -> {
+                        try { Thread.sleep(SCORE_SLEEP_TIME); }
+                        catch (InterruptedException e) {}
+                        reinitPositions();
+                    }).start();
+                    goalScored = true;
+                }
             }
 
             if (gameView != null) {
@@ -313,6 +334,10 @@ public class Game extends Thread implements Serializable {
 
                 gameView.ballPosX = (int)(leftSpacing + ball.pos.x * gameView.effectiveWidth);
                 gameView.ballPosY = (int)(topSpacing + ball.pos.y * gameView.effectiveWidth);
+
+                gameView.timer = (int)((accumulatedGameDuration + SystemClock.elapsedRealtime() - timeOfLastResume) / 1000);
+                gameView.leftSocre = players[0].goals;
+                gameView.rightScore = players[1].goals;
 
                 gameView.initialized = true;
                 gameView.invalidate();
@@ -334,6 +359,13 @@ public class Game extends Thread implements Serializable {
             // winner is right player
         }
 
+    }
+
+    private void reinitPositions() {
+        for (Pack pack : allPacks) {
+            pack.reinitPositions();
+        }
+        goalScored = false;
     }
 
     private void bounce(Pack pack, float x, float y) {

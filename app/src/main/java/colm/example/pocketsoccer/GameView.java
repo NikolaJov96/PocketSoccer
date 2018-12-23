@@ -2,6 +2,7 @@ package colm.example.pocketsoccer;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -27,6 +28,7 @@ public class GameView extends View {
 
     private Paint goalPaint;
     private Paint packPaint;
+    private Paint timePaint;
 
     public boolean initialized;
 
@@ -44,6 +46,10 @@ public class GameView extends View {
     public int goalWidth;
     public int packRadius;
     public int ballRadius;
+
+    public int timer;
+    public int leftSocre;
+    public int rightScore;
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -63,6 +69,11 @@ public class GameView extends View {
         packPaint.setStyle(Paint.Style.FILL);
         packPaint.setStrokeWidth(10);
         packPaint.setColor(0xff000000);
+
+        timePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        timePaint.setTextSize(100);
+        timePaint.setFakeBoldText(true);
+        timePaint.setColor(0xff000000);
 
         initialized = false;
 
@@ -123,5 +134,10 @@ public class GameView extends View {
         drawingRect.bottom = ballPosY + ballRadius - PACK_BORDER_WIDTH;
         canvas.drawCircle(ballPosX, ballPosY, ballRadius, packPaint);
         canvas.drawBitmap(gam.getBall(), null, drawingRect, packPaint);
+
+        String timeStr = (timer / 60) + " : " + (timer % 60);
+        canvas.drawText(timeStr, getWidth() / 2.0f, getHeight() * 0.1f, timePaint);
+        canvas.drawText(Integer.toString(leftSocre), getWidth() * 1.0f / 4.0f, getHeight() * 0.1f, timePaint);
+        canvas.drawText(Integer.toString(rightScore), getWidth() * 3.0f / 4.0f, getHeight() * 0.1f, timePaint);
     }
 }
