@@ -192,6 +192,9 @@ public class Game extends Thread implements Serializable {
             long iterationStartTime = SystemClock.elapsedRealtime();
 
             synchronized (this) {
+                if (accumulatedGameDuration + SystemClock.elapsedRealtime() - timeOfLastResume > MAX_GAME_DURATION) {
+                    finalizeGame();
+                }
                 if (accumulatedTurnDuration + SystemClock.elapsedRealtime() - timeOfTurnChange > TURN_TIME) {
                     changeTurn();
                 }
@@ -324,24 +327,25 @@ public class Game extends Thread implements Serializable {
             }
 
             if (!goalScored) {
-                boolean scored = false;
                 if (ball.pos.x > 0 && ball.pos.x < GOAL_WIDTH &&
                         ball.pos.y > (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f &&
                         ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
-                    scored = true;
                     players[1].goals++;
+                    new Thread(() -> {
+                        try { Thread.sleep(SCORE_SLEEP_TIME); }
+                        catch (InterruptedException e) {}
+                        reinitPositions(Side.LEFT);
+                    }).start();
+                    goalScored = true;
                 }
                 if (ball.pos.x > FIELD_WIDTH - GOAL_WIDTH && ball.pos.x < FIELD_WIDTH &&
                         ball.pos.y > (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f &&
                         ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
-                    scored = true;
                     players[0].goals++;
-                }
-                if (scored) {
                     new Thread(() -> {
                         try { Thread.sleep(SCORE_SLEEP_TIME); }
                         catch (InterruptedException e) {}
-                        reinitPositions();
+                        reinitPositions(Side.RIGHT);
                     }).start();
                     goalScored = true;
                 }
@@ -381,19 +385,20 @@ public class Game extends Thread implements Serializable {
                 sleep(timeToSleep);
             } catch (InterruptedException e) { e.printStackTrace(); }
         }
-
-        if (accumulatedGameDuration + SystemClock.elapsedRealtime() - timeOfLastResume > MAX_GAME_DURATION) {
-            finalizeGame();
-        }
+        finalizeGame();
     }
 
     private void changeTurn() {
-        clickedPack = null;
         if (turn == Side.LEFT) {
-            turn = Side.RIGHT;
+            changeTurn(Side.RIGHT);
         } else {
-            turn = Side.LEFT;
+            changeTurn(Side.LEFT);
         }
+    }
+
+    private void changeTurn(Side side) {
+        clickedPack = null;
+        turn = side;
         timeOfTurnChange = SystemClock.elapsedRealtime();
         accumulatedTurnDuration = 0;
         gameView.turn = turn;
@@ -407,7 +412,7 @@ public class Game extends Thread implements Serializable {
         }
     }
 
-    private void reinitPositions() {
+    private void reinitPositions(Side side) {
         for (Pack pack : allPacks) {
             pack.reinitPositions();
         }
@@ -416,6 +421,7 @@ public class Game extends Thread implements Serializable {
             finalizeGame();
         } else {
             goalScored = false;
+            changeTurn(side);
         }
     }
 
