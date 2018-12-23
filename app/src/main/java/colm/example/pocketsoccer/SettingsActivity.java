@@ -64,14 +64,9 @@ public class SettingsActivity extends AppCompatActivity {
 
         endGameRadioGroup = findViewById(R.id.end_game_radio_group);
         endGameRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            int endGameCondition = 0;
-            switch (checkedId) {
-                case R.id.time_radio:
-                    endGameCondition = 0;
-                    break;
-                case R.id.score_radio:
-                    endGameCondition = 1;
-                    break;
+            AppPreferences.EndGameConditions endGameCondition = AppPreferences.EndGameConditions.TIMEOUT;
+            if (checkedId == R.id.score_radio) {
+                endGameCondition = AppPreferences.EndGameConditions.SCORE;
             }
             if (ap.getEndGameCondition() != endGameCondition) {
                 ap.setEndGameCondition(endGameCondition);
@@ -107,20 +102,13 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void initGuiState() {
-
         updateFieldImage();
-
-        switch (ap.getEndGameCondition()) {
-            case 0:
-                timeoutRadio.setChecked(true);
-                break;
-            case 1:
-                scoreRadio.setChecked(true);
-                break;
+        if (ap.getEndGameCondition() == AppPreferences.EndGameConditions.TIMEOUT) {
+            timeoutRadio.setChecked(true);
+        } else {
+            scoreRadio.setChecked(true);
         }
-
         seekBar.setProgress(ap.getGameSpeed());
-
     }
 
 }

@@ -1,6 +1,5 @@
 package colm.example.pocketsoccer.game_model;
 
-import android.os.AsyncTask;
 import android.os.SystemClock;
 
 import java.io.Serializable;
@@ -21,10 +20,13 @@ public class Game extends Thread implements Serializable {
     private static final float PACK_RADIUS = FIELD_WIDTH * 0.05f;
 
     private static final int ITERATION_TIME = 1000 / 60;
+    private static final long MAX_GAME_DURATION = 1000 * 60 * 3;
+    private static final int GOALS_FOR_THE_WIN = 3;
 
     private static final float KICK_COEFFICIENT = 2.3f;
     private static final float SPEED_BLEED_COEFFICIENT = 0.992f;
-    private static final float BOUNCE_BLEED_COEFFICIENT = 0.93F;
+    private static final float BOUNCE_BLEED_COEFFICIENT = 0.93f;
+    private static final float GAME_SEPPD_COEFFICIENT = 0.2f;
 
     private static final long SCORE_SLEEP_TIME = 2500;
 
@@ -104,6 +106,15 @@ public class Game extends Thread implements Serializable {
 
     private static Game singletonGame;
 
+    public interface GameEndListener {
+        void gameFinished(String player1, String player2);
+    }
+    private GameEndListener gameEndListener;
+
+    //private AppPreferences ap;
+    private int apGameSpeed;
+    private AppPreferences.EndGameConditions apEndGameCondition;
+
     private GameView gameView;
     private int leftSpacing;
     private int topSpacing;
@@ -127,6 +138,11 @@ public class Game extends Thread implements Serializable {
     private boolean goalScored;
 
     private Game(NewGameDialog.NewGameDialogData data) {
+        gameEndListener = null;
+        AppPreferences ap = AppPreferences.getAppPreferences();
+        apGameSpeed = ap.getGameSpeed();
+        apEndGameCondition = ap.getEndGameCondition();
+
         players = new Player[2];
         players[0] = new Player(Side.LEFT, data.p1Name, data.p1Flag, (data.p1Cpu ? PlayerType.CPU : PlayerType.HUMAN));
         players[1] = new Player(Side.RIGHT, data.p2Name, data.p2Flag, (data.p2Cpu ? PlayerType.CPU : PlayerType.HUMAN));
@@ -170,7 +186,7 @@ public class Game extends Thread implements Serializable {
 
             synchronized (this) {
                 // update pack and ball positions
-                float dt = (SystemClock.elapsedRealtime() - lastUpdateTime) * 0.001f;
+                float dt = (SystemClock.elapsedRealtime() - lastUpdateTime) * 0.001f * (1.0f + apGameSpeed * GAME_SEPPD_COEFFICIENT);
                 for (int i = 0; i < 7; i++) {
                     allPacks[i].pos.x += allPacks[i].vel.x * dt;
                     allPacks[i].pos.y += allPacks[i].vel.y * dt;
@@ -302,13 +318,13 @@ public class Game extends Thread implements Serializable {
                         ball.pos.y > (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f &&
                         ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
                     scored = true;
-                    players[0].goals++;
+                    players[1].goals++;
                 }
                 if (ball.pos.x > FIELD_WIDTH - GOAL_WIDTH && ball.pos.x < FIELD_WIDTH &&
                         ball.pos.y > (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f &&
                         ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
                     scored = true;
-                    players[1].goals++;
+                    players[0].goals++;
                 }
                 if (scored) {
                     new Thread(() -> {
@@ -335,7 +351,11 @@ public class Game extends Thread implements Serializable {
                 gameView.ballPosX = (int)(leftSpacing + ball.pos.x * gameView.effectiveWidth);
                 gameView.ballPosY = (int)(topSpacing + ball.pos.y * gameView.effectiveWidth);
 
-                gameView.timer = (int)((accumulatedGameDuration + SystemClock.elapsedRealtime() - timeOfLastResume) / 1000);
+                if (apEndGameCondition == AppPreferences.EndGameConditions.TIMEOUT) {
+                    gameView.timer = (int)((MAX_GAME_DURATION - accumulatedGameDuration - SystemClock.elapsedRealtime() + timeOfLastResume) / 1000);
+                } else {
+                    gameView.timer = (int)((accumulatedGameDuration + SystemClock.elapsedRealtime() - timeOfLastResume) / 1000);
+                }
                 gameView.leftSocre = players[0].goals;
                 gameView.rightScore = players[1].goals;
 
@@ -351,21 +371,40 @@ public class Game extends Thread implements Serializable {
             } catch (InterruptedException e) { e.printStackTrace(); }
         }
 
-        if (winner == null) {
-            // tie
-        } else if (winner.equals(Side.LEFT)) {
-            // winner is left player
-        } else {
-            // winner is right player
+        if (accumulatedGameDuration + SystemClock.elapsedRealtime() - timeOfLastResume > MAX_GAME_DURATION) {
+            winner = null;
+            if (players[0].goals > players[1].goals) {
+                winner = Side.LEFT;
+            } else if (players[1].goals > players[0].goals) {
+                winner = Side.RIGHT;
+            }
+            finalizeGame();
         }
+    }
 
+    private void finalizeGame() {
+        // add game to database
+        finished = true;
+        if (gameEndListener != null) {
+            gameEndListener.gameFinished(players[0].name, players[1].name);
+        }
     }
 
     private void reinitPositions() {
         for (Pack pack : allPacks) {
             pack.reinitPositions();
         }
-        goalScored = false;
+        if (apEndGameCondition.equals(AppPreferences.EndGameConditions.SCORE) &&
+                (players[0].goals >= GOALS_FOR_THE_WIN || players[1].goals >= GOALS_FOR_THE_WIN)) {
+            if (players[0].goals > GOALS_FOR_THE_WIN) {
+                winner = Side.LEFT;
+            } else {
+                winner = Side.RIGHT;
+            }
+            finalizeGame();
+        } else {
+            goalScored = false;
+        }
     }
 
     private void bounce(Pack pack, float x, float y) {
@@ -396,13 +435,15 @@ public class Game extends Thread implements Serializable {
         pack.vel.y = (float)(-Math.sin(centerVecAngl) * norm1 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
     }
 
-    public synchronized void resumeGame() {
+    public synchronized void resumeGame(GameEndListener gameEndListener) {
+        this.gameEndListener = gameEndListener;
         timeOfLastResume = SystemClock.elapsedRealtime();
         running = true;
         notifyAll();
     }
 
     public void pauseGame() {
+        gameEndListener = null;
         accumulatedGameDuration += SystemClock.elapsedRealtime() - timeOfLastResume;
         running = false;
     }
@@ -447,7 +488,6 @@ public class Game extends Thread implements Serializable {
 
     public void setGameView(GameView gameView) {
         this.gameView = gameView;
-        int asd = gameView.getWidth();
         float gameViewProportion = ((float)gameView.getWidth()) / gameView.getHeight();
         if (gameViewProportion > FIELD_PROPORTION) {
             topSpacing = 0;

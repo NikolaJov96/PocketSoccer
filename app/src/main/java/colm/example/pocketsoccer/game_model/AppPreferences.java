@@ -7,6 +7,8 @@ import colm.example.pocketsoccer.MainActivity;
 
 public class AppPreferences {
 
+    public enum EndGameConditions { TIMEOUT, SCORE };
+
     private static AppPreferences singletonAP;
 
     private static final int DEFAULT_FIELD_ID = 0;
@@ -64,12 +66,20 @@ public class AppPreferences {
         storePreferences();
     }
 
-    public int getEndGameCondition() {
-        return endGameCondition;
+    public EndGameConditions getEndGameCondition() {
+        if (endGameCondition == 0) {
+            return EndGameConditions.TIMEOUT;
+        } else {
+            return EndGameConditions.SCORE;
+        }
     }
 
-    public void setEndGameCondition(int endGameCondition) {
-        this.endGameCondition = endGameCondition;
+    public void setEndGameCondition(EndGameConditions endGameCondition) {
+        if (endGameCondition.equals(EndGameConditions.TIMEOUT)) {
+            this.endGameCondition = 0;
+        } else {
+            this.endGameCondition = 1;
+        }
         storePreferences();
     }
 

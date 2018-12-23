@@ -2,13 +2,17 @@ package colm.example.pocketsoccer;
 
 import android.app.Activity;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import colm.example.pocketsoccer.game_model.Game;
 import colm.example.pocketsoccer.game_model.GameViewModel;
 
-public class GameActivity extends Activity {
+public class GameActivity extends Activity implements Game.GameEndListener {
+
+    public static final String PLAYER_1_EXTRA = "PLAYER_1_EXTRA";
+    public static final String PLAYER_2_EXTRA = "PLAYER_2_EXTRA";
 
     private GameView gameView;
 
@@ -31,7 +35,7 @@ public class GameActivity extends Activity {
                 e.printStackTrace();
             }
             Game.getGame().setGameView(gameView);
-            Game.getGame().resumeGame();
+            Game.getGame().resumeGame(this);
         }).start();
     }
 
@@ -40,5 +44,14 @@ public class GameActivity extends Activity {
         super.finalize();
         Game.getGame().pauseGame();
         Game.getGame().clearGameView();
+    }
+
+    @Override
+    public void gameFinished(String player1, String player2) {
+        Intent intent = new Intent();
+        intent.putExtra(PLAYER_1_EXTRA, player1);
+        intent.putExtra(PLAYER_2_EXTRA, player2);
+        setResult(Activity.RESULT_OK, intent);
+        finish();
     }
 }
