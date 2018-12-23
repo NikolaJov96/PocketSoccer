@@ -68,6 +68,7 @@ public class MainMenuActivity extends AppCompatActivity implements NewGameDialog
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (model.getGame() != null) model.getGame().pauseGame();
         if (model.getGame() == null) {
             continueGameButton.setVisibility(View.GONE);
         } else {

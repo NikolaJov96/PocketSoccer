@@ -10,19 +10,14 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
+import colm.example.pocketsoccer.game_model.Game;
 import colm.example.pocketsoccer.game_model.GameAssetManager;
 
 public class GameView extends View {
 
-    class GestureListener extends GestureDetector.SimpleOnGestureListener {
-        @Override
-        public boolean onDown(MotionEvent e) {
-            return true;
-        }
-    }
-    GestureDetector detector = new GestureDetector(GameView.this.getContext(), new GestureListener());
-
     private static final int PACK_BORDER_WIDTH = 5;
+
+    private Game game;
 
     private GameAssetManager gam;
     private Rect drawingRect;
@@ -50,6 +45,8 @@ public class GameView extends View {
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
+        game = Game.getGame();
+
         gam = GameAssetManager.getGameAssetManager();
         drawingRect = new Rect();
 
@@ -72,15 +69,13 @@ public class GameView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        boolean result = detector.onTouchEvent(event);
-        if (!result) {
-            if (event.getAction() == MotionEvent.ACTION_UP) {
-                Toast.makeText(getContext(), "view clicked", Toast.LENGTH_SHORT).show();
-                performClick();
-                result = true;
-            }
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            game.startMove((int)event.getX(), (int)event.getY());
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            game.endMove((int)event.getX(), (int)event.getY());
+            performClick();
         }
-        return result;
+        return true;
     }
 
     @Override
