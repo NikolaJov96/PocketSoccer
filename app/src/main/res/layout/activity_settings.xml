@@ -30,14 +30,14 @@
     </LinearLayout>
 
     <android.support.constraint.ConstraintLayout
-        android:layout_width="200dp"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center">
 
-        <LinearLayout
+        <android.support.constraint.ConstraintLayout
             android:id="@+id/settings_1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -48,27 +48,40 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_left_button"
-                android:contentDescription="@string/left_field_option"/>
+                android:contentDescription="@string/left_field_option"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/field_view"
+                app:layout_constraintBottom_toBottomOf="parent"/>
 
             <ImageView
                 android:id="@+id/field_view"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:contentDescription="@string/selected_field_option"/>
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:contentDescription="@string/selected_field_option"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/left_field_button"
+                app:layout_constraintRight_toLeftOf="@id/right_field_button"
+                app:layout_constraintBottom_toBottomOf="parent"/>
 
             <ImageButton
                 android:id="@+id/right_field_button"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_right_button"
-                android:contentDescription="@string/right_field_option"/>
+                android:contentDescription="@string/right_field_option"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/field_view"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
 
-        </LinearLayout>
+        </android.support.constraint.ConstraintLayout>
 
         <LinearLayout
             android:id="@+id/settings_2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="8dp"
             android:orientation="vertical"
             app:layout_constraintTop_toBottomOf="@id/settings_1"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -84,18 +97,21 @@
             <RadioGroup
                 android:id="@+id/end_game_radio_group"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
                 <RadioButton
                     android:id="@+id/time_radio"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="8dp"
                     android:text="@string/timeout_radio"/>
 
                 <RadioButton
                     android:id="@+id/score_radio"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="8dp"
                     android:text="@string/score_radio"/>
 
             </RadioGroup>
@@ -106,6 +122,7 @@
             android:id="@+id/settings_3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_margin="8dp"
             android:orientation="vertical"
             app:layout_constraintTop_toBottomOf="@id/settings_2"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -121,8 +138,9 @@
             <SeekBar
                 android:id="@+id/game_speed_seek_bar"
                 style="@style/Widget.AppCompat.SeekBar.Discrete"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"/>
 
         </LinearLayout>
 
