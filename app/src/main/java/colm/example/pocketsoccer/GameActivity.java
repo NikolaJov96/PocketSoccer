@@ -1,23 +1,21 @@
 package colm.example.pocketsoccer;
 
+import android.app.Activity;
 import android.arch.lifecycle.ViewModelProviders;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import colm.example.pocketsoccer.game_model.Game;
 import colm.example.pocketsoccer.game_model.GameViewModel;
 
-public class GameActivity extends AppCompatActivity {
+public class GameActivity extends Activity {
 
     private GameView gameView;
-
-    private GameViewModel model;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
-
-        model = ViewModelProviders.of(this).get(GameViewModel.class);
 
         gameView = findViewById(R.id.game_graphics_view);
     }
@@ -32,15 +30,15 @@ public class GameActivity extends AppCompatActivity {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            model.getGame().setGameView(gameView);
-            model.getGame().resumeGame();
+            Game.getGame().setGameView(gameView);
+            Game.getGame().resumeGame();
         }).start();
     }
 
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        model.getGame().pauseGame();
-        model.getGame().clearGameView();
+        Game.getGame().pauseGame();
+        Game.getGame().clearGameView();
     }
 }

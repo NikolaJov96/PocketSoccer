@@ -48,7 +48,7 @@ public class AppPreferences {
         storePreferences();
     }
 
-    static AppPreferences getAppPreferences() {
+    public static AppPreferences getAppPreferences() {
         if (singletonAP == null) {
             singletonAP = new AppPreferences();
         }

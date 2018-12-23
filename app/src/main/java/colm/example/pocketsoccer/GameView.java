@@ -1,5 +1,6 @@
 package colm.example.pocketsoccer;
 
+import android.app.Application;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -10,6 +11,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
+import colm.example.pocketsoccer.game_model.AppPreferences;
 import colm.example.pocketsoccer.game_model.Game;
 import colm.example.pocketsoccer.game_model.GameAssetManager;
 
@@ -20,6 +22,7 @@ public class GameView extends View {
     private Game game;
 
     private GameAssetManager gam;
+    private AppPreferences ap;
     private Rect drawingRect;
 
     private Paint goalPaint;
@@ -48,11 +51,12 @@ public class GameView extends View {
         game = Game.getGame();
 
         gam = GameAssetManager.getGameAssetManager();
+        ap = AppPreferences.getAppPreferences();
         drawingRect = new Rect();
 
         goalPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         goalPaint.setStyle(Paint.Style.STROKE);
-        goalPaint.setStrokeWidth(10);
+        goalPaint.setStrokeWidth(20);
         goalPaint.setColor(0xff000000);
 
         packPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -90,7 +94,12 @@ public class GameView extends View {
             return;
         }
 
-        canvas.drawRect(leftSpacing, topSpacing, getWidth() - leftSpacing, getHeight() - topSpacing, goalPaint);
+        drawingRect.left = leftSpacing;
+        drawingRect.right = getWidth() - leftSpacing;
+        drawingRect.top = topSpacing;
+        drawingRect.bottom = getHeight() - topSpacing;
+        canvas.drawBitmap(gam.getField(ap.getFieldId()), null, drawingRect, packPaint);
+        canvas.drawRect(drawingRect, goalPaint);
 
         int goalTopY = (getHeight() - goalHeight) / 2;
         int goalBottomY = getHeight() - goalTopY;
