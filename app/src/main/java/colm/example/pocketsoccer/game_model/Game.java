@@ -21,8 +21,9 @@ public class Game extends Thread implements Serializable {
 
     private static final int ITERATION_TIME = 1000 / 60;
 
-    private static final float KICK_COEFFICIENT = 2.9F;
-    private static final float SPEED_BLEED_COEFFICIENT = 0.975f;
+    private static final float KICK_COEFFICIENT = 2.3f;
+    private static final float SPEED_BLEED_COEFFICIENT = 0.992f;
+    private static final float BOUNCE_BLEED_COEFFICIENT = 0.93F;
 
     private enum Side { LEFT, RIGHT }
 
@@ -207,14 +208,78 @@ public class Game extends Thread implements Serializable {
                             float par1 = (float)Math.sin(diffAngle1) * inten1;
                             float par2 = (float)Math.sin(diffAngle2) * inten2;
 
-                            allPacks[i].vel.x = (float)(-Math.cos(centerVecAngl) * norm1 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par1);
-                            allPacks[i].vel.y = (float)(-Math.sin(centerVecAngl) * norm1 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par1);
-                            allPacks[j].vel.x = (float)( Math.cos(centerVecAngl) * norm2 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par2);
-                            allPacks[j].vel.y = (float)( Math.sin(centerVecAngl) * norm2 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par2);
+                            float mass1 = allPacks[i].radius * allPacks[i].radius;
+                            float mass2 = allPacks[j].radius * allPacks[j].radius;
+                            float accNorm = norm1 * mass1 + norm2 * mass2;
 
+                            norm1 = accNorm * mass1 / (mass1 + mass2) / (allPacks[i].radius * allPacks[i].radius);
+                            norm2 = accNorm * mass2 / (mass1 + mass2) / (allPacks[j].radius * allPacks[j].radius);
+
+                            allPacks[i].vel.x = (float)(-Math.cos(centerVecAngl) * norm1 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
+                            allPacks[i].vel.y = (float)(-Math.sin(centerVecAngl) * norm1 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
+                            allPacks[j].vel.x = (float)( Math.cos(centerVecAngl) * norm2 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par2) * BOUNCE_BLEED_COEFFICIENT;
+                            allPacks[j].vel.y = (float)( Math.sin(centerVecAngl) * norm2 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par2) * BOUNCE_BLEED_COEFFICIENT;
                         }
                     }
                 }
+
+                float goalBottomY = (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f;
+                float goalTopY = FIELD_HEIGHT - goalBottomY;
+                for (int i = 0; i < 7; i++) {
+                    if (allPacks[i].pos.x - allPacks[i].radius < 0) {
+                        allPacks[i].vel.x = Math.abs(allPacks[i].vel.x) * BOUNCE_BLEED_COEFFICIENT;
+                    }
+                    if (allPacks[i].pos.x + allPacks[i].radius > FIELD_WIDTH) {
+                        allPacks[i].vel.x = - Math.abs(allPacks[i].vel.x) * BOUNCE_BLEED_COEFFICIENT;
+                    }
+                    if (allPacks[i].pos.y - allPacks[i].radius < 0) {
+                        allPacks[i].vel.y = Math.abs(allPacks[i].vel.y) * BOUNCE_BLEED_COEFFICIENT;
+                    }
+                    if (allPacks[i].pos.y + allPacks[i].radius > FIELD_HEIGHT) {
+                        allPacks[i].vel.y = - Math.abs(allPacks[i].vel.y) * BOUNCE_BLEED_COEFFICIENT;
+                    }
+
+                    if (allPacks[i].pos.x < GOAL_WIDTH && allPacks[i].pos.y > goalBottomY - allPacks[i].radius && allPacks[i].pos.y < goalBottomY + allPacks[i].radius) {
+                        if (allPacks[i].pos.y < goalBottomY) {
+                            allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
+                        } else {
+                            allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
+                        }
+                    }
+                    if (allPacks[i].pos.x < GOAL_WIDTH && allPacks[i].pos.y > goalTopY - allPacks[i].radius && allPacks[i].pos.y < goalTopY + allPacks[i].radius) {
+                        if (allPacks[i].pos.y < goalTopY) {
+                            allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
+                        } else {
+                            allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
+                        }
+                    }
+                    if (allPacks[i].pos.x > FIELD_WIDTH - GOAL_WIDTH && allPacks[i].pos.y > goalBottomY - allPacks[i].radius && allPacks[i].pos.y < goalBottomY + allPacks[i].radius) {
+                        if (allPacks[i].pos.y < goalBottomY) {
+                            allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
+                        } else {
+                            allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
+                        }
+                    }
+                    if (allPacks[i].pos.x > FIELD_WIDTH - GOAL_WIDTH && allPacks[i].pos.y > goalTopY - allPacks[i].radius && allPacks[i].pos.y < goalTopY + allPacks[i].radius) {
+                        if (allPacks[i].pos.y < goalTopY) {
+                            allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
+                        } else {
+                            allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
+                        }
+                    }
+
+                    if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, GOAL_WIDTH, goalBottomY) < allPacks[i].radius * allPacks[i].radius) {
+                        bounce(allPacks[i], GOAL_WIDTH, goalBottomY);
+                    } else if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, GOAL_WIDTH, goalTopY) < allPacks[i].radius * allPacks[i].radius) {
+                        bounce(allPacks[i], GOAL_WIDTH, goalTopY);
+                    } else if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, FIELD_WIDTH - GOAL_WIDTH, goalBottomY) < allPacks[i].radius * allPacks[i].radius) {
+                        bounce(allPacks[i], FIELD_WIDTH - GOAL_WIDTH, goalBottomY);
+                    } else if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, FIELD_WIDTH - GOAL_WIDTH, goalTopY) < allPacks[i].radius * allPacks[i].radius) {
+                        bounce(allPacks[i], FIELD_WIDTH - GOAL_WIDTH, goalTopY);
+                    }
+                }
+
+
             }
 
             boolean scored = false;
@@ -269,6 +334,34 @@ public class Game extends Thread implements Serializable {
             // winner is right player
         }
 
+    }
+
+    private void bounce(Pack pack, float x, float y) {
+        float inten1 = dst(0, 0, pack.vel.x, pack.vel.y);
+        float angle1 = (float)Math.PI / 2.0f;
+        if (pack.vel.x != 0) { angle1 = (float)Math.atan(pack.vel.y / pack.vel.x); }
+        else if (pack.vel.y < 0) { angle1 += Math.PI / 2.0f; }
+        if (pack.vel.x < 0) {
+            angle1 += Math.PI;
+            if (angle1 > Math.PI) angle1 -= 2 * Math.PI;
+        }
+
+        float centerVecX = x - pack.pos.x;
+        float centerVecY = y - pack.pos.y;
+        float centerVecAngl = (float)Math.PI / 2.0f;
+        if (centerVecX != 0) { centerVecAngl = (float)Math.atan(centerVecY / centerVecX); }
+        else if (centerVecY < 0) { centerVecAngl += Math.PI / 2.0f; }
+        if (centerVecX < 0) {
+            centerVecAngl += Math.PI;
+            if (centerVecAngl > Math.PI) centerVecAngl -= 2 * Math.PI;
+        }
+
+        float diffAngle1 = angle1 - centerVecAngl;
+        float norm1 = Math.abs((float)Math.cos(diffAngle1) * inten1);
+        float par1 = (float)Math.sin(diffAngle1) * inten1;
+
+        pack.vel.x = (float)(-Math.cos(centerVecAngl) * norm1 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
+        pack.vel.y = (float)(-Math.sin(centerVecAngl) * norm1 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
     }
 
     public synchronized void resumeGame() {
