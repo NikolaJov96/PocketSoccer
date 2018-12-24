@@ -32,11 +32,8 @@ public class GameActivity extends Activity implements Game.GameEndListener {
         super.onResume();
 
         new Thread(() -> {
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            try { Thread.sleep(100); }
+            catch (InterruptedException e) { e.printStackTrace(); }
             Game.getGame().setGameView(gameView);
             Game.getGame().resumeGame(this);
         }).start();

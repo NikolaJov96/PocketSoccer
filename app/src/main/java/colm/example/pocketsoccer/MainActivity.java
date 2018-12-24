@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
+import colm.example.pocketsoccer.game_model.AppPreferences;
 import colm.example.pocketsoccer.game_model.GameAssetManager;
 import colm.example.pocketsoccer.game_model.GameViewModel;
 
@@ -33,6 +34,10 @@ public class MainActivity extends AppCompatActivity implements GameAssetManager.
         seekBar.setEnabled(false);
 
         model = ViewModelProviders.of(this).get(GameViewModel.class);
+        if (model.getGameAssetManager().isLoaded()) {
+            Intent intent = new Intent(this, MainMenuActivity.class);
+            startActivityForResult(intent, MAIN_MENU_REQUEST_CODE);
+        }
     }
 
     @Override
@@ -53,8 +58,6 @@ public class MainActivity extends AppCompatActivity implements GameAssetManager.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == MAIN_MENU_REQUEST_CODE) {
-            finish();
-        }
+        finish();
     }
 }

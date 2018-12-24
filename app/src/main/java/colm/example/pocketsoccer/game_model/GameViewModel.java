@@ -38,8 +38,6 @@ public class GameViewModel extends AndroidViewModel {
 
     private GameAssetManager gameAssetManager;
 
-    private Game game;
-
     public GameViewModel(Application application) {
         super(application);
         repository = new Repository(application);
@@ -49,7 +47,6 @@ public class GameViewModel extends AndroidViewModel {
         allTwoPlayerScores = repository.getAllTwoPlayerScores();
         appPreferences = AppPreferences.getAppPreferences();
         gameAssetManager = GameAssetManager.getGameAssetManager();
-        game = Game.getGame();
     }
 
     public LiveData<List<Score>> getAllScores() {
@@ -81,12 +78,11 @@ public class GameViewModel extends AndroidViewModel {
     }
 
     public Game getGame() {
-        game = Game.getGame();
-        return game;
+        return Game.getGame();
     }
 
     public void newGame(NewGameDialog.NewGameDialogData data) {
-        game = Game.newGame(data);
+        Game.newGame(data);
     }
 
     public void purgeGame() {

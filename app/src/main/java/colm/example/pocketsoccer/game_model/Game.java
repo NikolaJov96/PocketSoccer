@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.SystemClock;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -13,7 +12,6 @@ import java.io.Serializable;
 
 import colm.example.pocketsoccer.GameView;
 import colm.example.pocketsoccer.MainActivity;
-import colm.example.pocketsoccer.MainMenuActivity;
 import colm.example.pocketsoccer.NewGameDialog;
 
 public class Game extends Thread implements Serializable {
@@ -191,7 +189,7 @@ public class Game extends Thread implements Serializable {
         }
         ObjectInputStream objectIn = null;
         Object object = null;
-        /*try {
+        try {
             FileInputStream fileIn = MainActivity.mainActivity.getApplicationContext().openFileInput(DUMP_FILE_NAME);
             objectIn = new ObjectInputStream(fileIn);
             object = objectIn.readObject();
@@ -202,8 +200,12 @@ public class Game extends Thread implements Serializable {
                 try { objectIn.close(); }
                 catch (IOException ignored) {}
             }
-        }*/
-        return (Game)object;
+        }
+        singletonGame = (Game)object;
+        if (singletonGame != null) {
+            singletonGame.start();
+        }
+        return singletonGame;
     }
 
     public static void purgeGame() {
@@ -212,212 +214,233 @@ public class Game extends Thread implements Serializable {
             singletonGame.clearGameView();
         }
         singletonGame = null;
+        try {
+            MainActivity.mainActivity.getFileStreamPath(DUMP_FILE_NAME).delete();
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @Override
     public void run() {
-        while (!finished) {
-            while (!running) synchronized (this) {
-                try { wait(); }
-                catch (InterruptedException e) { e.printStackTrace(); }
-            }
-            long iterationStartTime = SystemClock.elapsedRealtime();
-
-            synchronized (this) {
-                if (accumulatedGameDuration + SystemClock.elapsedRealtime() - timeOfLastResume > MAX_GAME_DURATION) {
-                    finalizeGame();
+        try {
+            while (!finished) {
+                while (!running) synchronized (this) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-                if (accumulatedTurnDuration + SystemClock.elapsedRealtime() - timeOfTurnChange > TURN_TIME) {
-                    changeTurn();
-                }
+                long iterationStartTime = SystemClock.elapsedRealtime();
 
-                // update pack and ball positions
-                float dt = (SystemClock.elapsedRealtime() - lastUpdateTime) * 0.001f * (1.0f + apGameSpeed * GAME_SPEED_COEFFICIENT);
-                for (int i = 0; i < 7; i++) {
-                    allPacks[i].pos.x += allPacks[i].vel.x * dt;
-                    allPacks[i].pos.y += allPacks[i].vel.y * dt;
-                    allPacks[i].vel.x *= SPEED_BLEED_COEFFICIENT;
-                    allPacks[i].vel.y *= SPEED_BLEED_COEFFICIENT;
-                }
-                lastUpdateTime = SystemClock.elapsedRealtime();
+                synchronized (this) {
+                    if (accumulatedGameDuration + SystemClock.elapsedRealtime() - timeOfLastResume > MAX_GAME_DURATION) {
+                        finalizeGame();
+                    }
+                    if (accumulatedTurnDuration + SystemClock.elapsedRealtime() - timeOfTurnChange > TURN_TIME) {
+                        changeTurn();
+                    }
 
-                // collision detection and resolving
-                for (int i = 0; i < 6; i++) {
-                    for (int j = i + 1; j < 7; j++) {
-                        float distSq = dstSq(allPacks[i].pos.x, allPacks[i].pos.y, allPacks[j].pos.x, allPacks[j].pos.y);
-                        if (distSq < (allPacks[i].radius + allPacks[j].radius) * (allPacks[i].radius + allPacks[j].radius)) {
-                            float x1 = allPacks[i].pos.x;
-                            float y1 = allPacks[i].pos.y;
-                            float x2 = allPacks[j].pos.x;
-                            float y2 = allPacks[j].pos.y;
+                    // update pack and ball positions
+                    float dt = (SystemClock.elapsedRealtime() - lastUpdateTime) * 0.001f * (1.0f + apGameSpeed * GAME_SPEED_COEFFICIENT);
+                    for (int i = 0; i < 7; i++) {
+                        allPacks[i].pos.x += allPacks[i].vel.x * dt;
+                        allPacks[i].pos.y += allPacks[i].vel.y * dt;
+                        allPacks[i].vel.x *= SPEED_BLEED_COEFFICIENT;
+                        allPacks[i].vel.y *= SPEED_BLEED_COEFFICIENT;
+                    }
+                    lastUpdateTime = SystemClock.elapsedRealtime();
 
-                            float inten1 = dst(0, 0, allPacks[i].vel.x, allPacks[i].vel.y);
-                            float angle1 = (float)Math.PI / 2.0f;
-                            if (allPacks[i].vel.x != 0) { angle1 = (float)Math.atan(allPacks[i].vel.y / allPacks[i].vel.x); }
-                            else if (allPacks[i].vel.y < 0) { angle1 += Math.PI / 2.0f; }
-                            if (allPacks[i].vel.x < 0) {
-                                angle1 += Math.PI;
-                                if (angle1 > Math.PI) angle1 -= 2 * Math.PI;
+                    // collision detection and resolving
+                    for (int i = 0; i < 6; i++) {
+                        for (int j = i + 1; j < 7; j++) {
+                            float distSq = dstSq(allPacks[i].pos.x, allPacks[i].pos.y, allPacks[j].pos.x, allPacks[j].pos.y);
+                            if (distSq < (allPacks[i].radius + allPacks[j].radius) * (allPacks[i].radius + allPacks[j].radius)) {
+                                float x1 = allPacks[i].pos.x;
+                                float y1 = allPacks[i].pos.y;
+                                float x2 = allPacks[j].pos.x;
+                                float y2 = allPacks[j].pos.y;
+
+                                float inten1 = dst(0, 0, allPacks[i].vel.x, allPacks[i].vel.y);
+                                float angle1 = (float) Math.PI / 2.0f;
+                                if (allPacks[i].vel.x != 0) {
+                                    angle1 = (float) Math.atan(allPacks[i].vel.y / allPacks[i].vel.x);
+                                } else if (allPacks[i].vel.y < 0) {
+                                    angle1 += Math.PI / 2.0f;
+                                }
+                                if (allPacks[i].vel.x < 0) {
+                                    angle1 += Math.PI;
+                                    if (angle1 > Math.PI) angle1 -= 2 * Math.PI;
+                                }
+                                float inten2 = dst(0, 0, allPacks[j].vel.x, allPacks[j].vel.y);
+                                float angle2 = (float) Math.PI / 2.0f;
+                                if (allPacks[j].vel.x != 0) {
+                                    angle2 = (float) Math.atan(allPacks[j].vel.y / allPacks[j].vel.x);
+                                } else if (allPacks[j].vel.y < 0) {
+                                    angle2 += Math.PI / 2.0f;
+                                }
+                                if (allPacks[j].vel.x < 0) {
+                                    angle2 += Math.PI;
+                                    if (angle2 > Math.PI) angle2 -= 2 * Math.PI;
+                                }
+
+                                float centerVecX = x2 - x1;
+                                float centerVecY = y2 - y1;
+                                float centerVecAngl = (float) Math.PI / 2.0f;
+                                if (centerVecX != 0) {
+                                    centerVecAngl = (float) Math.atan(centerVecY / centerVecX);
+                                } else if (centerVecY < 0) {
+                                    centerVecAngl += Math.PI / 2.0f;
+                                }
+                                if (centerVecX < 0) {
+                                    centerVecAngl += Math.PI;
+                                    if (centerVecAngl > Math.PI) centerVecAngl -= 2 * Math.PI;
+                                }
+
+                                float diffAngle1 = angle1 - centerVecAngl;
+                                float diffAngle2 = angle2 - centerVecAngl;
+                                float norm1 = Math.abs((float) Math.cos(diffAngle1) * inten1);
+                                float norm2 = Math.abs((float) Math.cos(diffAngle2) * inten2);
+                                float par1 = (float) Math.sin(diffAngle1) * inten1;
+                                float par2 = (float) Math.sin(diffAngle2) * inten2;
+
+                                float mass1 = allPacks[i].radius * allPacks[i].radius;
+                                float mass2 = allPacks[j].radius * allPacks[j].radius;
+                                float accNorm = norm1 * mass1 + norm2 * mass2;
+
+                                norm1 = accNorm * mass1 / (mass1 + mass2) / (allPacks[i].radius * allPacks[i].radius);
+                                norm2 = accNorm * mass2 / (mass1 + mass2) / (allPacks[j].radius * allPacks[j].radius);
+
+                                allPacks[i].vel.x = (float) (-Math.cos(centerVecAngl) * norm1 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
+                                allPacks[i].vel.y = (float) (-Math.sin(centerVecAngl) * norm1 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
+                                allPacks[j].vel.x = (float) (Math.cos(centerVecAngl) * norm2 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par2) * BOUNCE_BLEED_COEFFICIENT;
+                                allPacks[j].vel.y = (float) (Math.sin(centerVecAngl) * norm2 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par2) * BOUNCE_BLEED_COEFFICIENT;
                             }
-                            float inten2 = dst(0, 0, allPacks[j].vel.x, allPacks[j].vel.y);
-                            float angle2 = (float)Math.PI / 2.0f;
-                            if (allPacks[j].vel.x != 0) { angle2 = (float)Math.atan(allPacks[j].vel.y / allPacks[j].vel.x); }
-                            else if (allPacks[j].vel.y < 0) { angle2 += Math.PI / 2.0f; }
-                            if (allPacks[j].vel.x < 0) {
-                                angle2 += Math.PI;
-                                if (angle2 > Math.PI) angle2 -= 2 * Math.PI;
+                        }
+                    }
+
+                    float goalBottomY = (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f;
+                    float goalTopY = FIELD_HEIGHT - goalBottomY;
+                    for (int i = 0; i < 7; i++) {
+                        if (allPacks[i].pos.x - allPacks[i].radius < 0) {
+                            allPacks[i].vel.x = Math.abs(allPacks[i].vel.x) * BOUNCE_BLEED_COEFFICIENT;
+                        }
+                        if (allPacks[i].pos.x + allPacks[i].radius > FIELD_WIDTH) {
+                            allPacks[i].vel.x = -Math.abs(allPacks[i].vel.x) * BOUNCE_BLEED_COEFFICIENT;
+                        }
+                        if (allPacks[i].pos.y - allPacks[i].radius < 0) {
+                            allPacks[i].vel.y = Math.abs(allPacks[i].vel.y) * BOUNCE_BLEED_COEFFICIENT;
+                        }
+                        if (allPacks[i].pos.y + allPacks[i].radius > FIELD_HEIGHT) {
+                            allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y) * BOUNCE_BLEED_COEFFICIENT;
+                        }
+
+                        if (allPacks[i].pos.x < GOAL_WIDTH && allPacks[i].pos.y > goalBottomY - allPacks[i].radius && allPacks[i].pos.y < goalBottomY + allPacks[i].radius) {
+                            if (allPacks[i].pos.y < goalBottomY) {
+                                allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
+                            } else {
+                                allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
                             }
-
-                            float centerVecX = x2 - x1;
-                            float centerVecY = y2 - y1;
-                            float centerVecAngl = (float)Math.PI / 2.0f;
-                            if (centerVecX != 0) { centerVecAngl = (float)Math.atan(centerVecY / centerVecX); }
-                            else if (centerVecY < 0) { centerVecAngl += Math.PI / 2.0f; }
-                            if (centerVecX < 0) {
-                                centerVecAngl += Math.PI;
-                                if (centerVecAngl > Math.PI) centerVecAngl -= 2 * Math.PI;
+                        }
+                        if (allPacks[i].pos.x < GOAL_WIDTH && allPacks[i].pos.y > goalTopY - allPacks[i].radius && allPacks[i].pos.y < goalTopY + allPacks[i].radius) {
+                            if (allPacks[i].pos.y < goalTopY) {
+                                allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
+                            } else {
+                                allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
                             }
+                        }
+                        if (allPacks[i].pos.x > FIELD_WIDTH - GOAL_WIDTH && allPacks[i].pos.y > goalBottomY - allPacks[i].radius && allPacks[i].pos.y < goalBottomY + allPacks[i].radius) {
+                            if (allPacks[i].pos.y < goalBottomY) {
+                                allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
+                            } else {
+                                allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
+                            }
+                        }
+                        if (allPacks[i].pos.x > FIELD_WIDTH - GOAL_WIDTH && allPacks[i].pos.y > goalTopY - allPacks[i].radius && allPacks[i].pos.y < goalTopY + allPacks[i].radius) {
+                            if (allPacks[i].pos.y < goalTopY) {
+                                allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
+                            } else {
+                                allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
+                            }
+                        }
 
-                            float diffAngle1 = angle1 - centerVecAngl;
-                            float diffAngle2 = angle2 - centerVecAngl;
-                            float norm1 = Math.abs((float)Math.cos(diffAngle1) * inten1);
-                            float norm2 = Math.abs((float)Math.cos(diffAngle2) * inten2);
-                            float par1 = (float)Math.sin(diffAngle1) * inten1;
-                            float par2 = (float)Math.sin(diffAngle2) * inten2;
-
-                            float mass1 = allPacks[i].radius * allPacks[i].radius;
-                            float mass2 = allPacks[j].radius * allPacks[j].radius;
-                            float accNorm = norm1 * mass1 + norm2 * mass2;
-
-                            norm1 = accNorm * mass1 / (mass1 + mass2) / (allPacks[i].radius * allPacks[i].radius);
-                            norm2 = accNorm * mass2 / (mass1 + mass2) / (allPacks[j].radius * allPacks[j].radius);
-
-                            allPacks[i].vel.x = (float)(-Math.cos(centerVecAngl) * norm1 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
-                            allPacks[i].vel.y = (float)(-Math.sin(centerVecAngl) * norm1 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
-                            allPacks[j].vel.x = (float)( Math.cos(centerVecAngl) * norm2 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par2) * BOUNCE_BLEED_COEFFICIENT;
-                            allPacks[j].vel.y = (float)( Math.sin(centerVecAngl) * norm2 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par2) * BOUNCE_BLEED_COEFFICIENT;
+                        if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, GOAL_WIDTH, goalBottomY) < allPacks[i].radius * allPacks[i].radius) {
+                            bounce(allPacks[i], GOAL_WIDTH, goalBottomY);
+                        } else if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, GOAL_WIDTH, goalTopY) < allPacks[i].radius * allPacks[i].radius) {
+                            bounce(allPacks[i], GOAL_WIDTH, goalTopY);
+                        } else if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, FIELD_WIDTH - GOAL_WIDTH, goalBottomY) < allPacks[i].radius * allPacks[i].radius) {
+                            bounce(allPacks[i], FIELD_WIDTH - GOAL_WIDTH, goalBottomY);
+                        } else if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, FIELD_WIDTH - GOAL_WIDTH, goalTopY) < allPacks[i].radius * allPacks[i].radius) {
+                            bounce(allPacks[i], FIELD_WIDTH - GOAL_WIDTH, goalTopY);
                         }
                     }
                 }
 
-                float goalBottomY = (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f;
-                float goalTopY = FIELD_HEIGHT - goalBottomY;
-                for (int i = 0; i < 7; i++) {
-                    if (allPacks[i].pos.x - allPacks[i].radius < 0) {
-                        allPacks[i].vel.x = Math.abs(allPacks[i].vel.x) * BOUNCE_BLEED_COEFFICIENT;
+                if (!goalScored) {
+                    if (ball.pos.x > 0 && ball.pos.x < GOAL_WIDTH &&
+                            ball.pos.y > (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f &&
+                            ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
+                        players[1].goals++;
+                        new Thread(() -> {
+                            try {
+                                Thread.sleep(SCORE_SLEEP_TIME);
+                            } catch (InterruptedException e) {
+                            }
+                            reinitPositions(Side.LEFT);
+                        }).start();
+                        goalScored = true;
                     }
-                    if (allPacks[i].pos.x + allPacks[i].radius > FIELD_WIDTH) {
-                        allPacks[i].vel.x = - Math.abs(allPacks[i].vel.x) * BOUNCE_BLEED_COEFFICIENT;
-                    }
-                    if (allPacks[i].pos.y - allPacks[i].radius < 0) {
-                        allPacks[i].vel.y = Math.abs(allPacks[i].vel.y) * BOUNCE_BLEED_COEFFICIENT;
-                    }
-                    if (allPacks[i].pos.y + allPacks[i].radius > FIELD_HEIGHT) {
-                        allPacks[i].vel.y = - Math.abs(allPacks[i].vel.y) * BOUNCE_BLEED_COEFFICIENT;
-                    }
-
-                    if (allPacks[i].pos.x < GOAL_WIDTH && allPacks[i].pos.y > goalBottomY - allPacks[i].radius && allPacks[i].pos.y < goalBottomY + allPacks[i].radius) {
-                        if (allPacks[i].pos.y < goalBottomY) {
-                            allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
-                        } else {
-                            allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
-                        }
-                    }
-                    if (allPacks[i].pos.x < GOAL_WIDTH && allPacks[i].pos.y > goalTopY - allPacks[i].radius && allPacks[i].pos.y < goalTopY + allPacks[i].radius) {
-                        if (allPacks[i].pos.y < goalTopY) {
-                            allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
-                        } else {
-                            allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
-                        }
-                    }
-                    if (allPacks[i].pos.x > FIELD_WIDTH - GOAL_WIDTH && allPacks[i].pos.y > goalBottomY - allPacks[i].radius && allPacks[i].pos.y < goalBottomY + allPacks[i].radius) {
-                        if (allPacks[i].pos.y < goalBottomY) {
-                            allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
-                        } else {
-                            allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
-                        }
-                    }
-                    if (allPacks[i].pos.x > FIELD_WIDTH - GOAL_WIDTH && allPacks[i].pos.y > goalTopY - allPacks[i].radius && allPacks[i].pos.y < goalTopY + allPacks[i].radius) {
-                        if (allPacks[i].pos.y < goalTopY) {
-                            allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
-                        } else {
-                            allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
-                        }
-                    }
-
-                    if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, GOAL_WIDTH, goalBottomY) < allPacks[i].radius * allPacks[i].radius) {
-                        bounce(allPacks[i], GOAL_WIDTH, goalBottomY);
-                    } else if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, GOAL_WIDTH, goalTopY) < allPacks[i].radius * allPacks[i].radius) {
-                        bounce(allPacks[i], GOAL_WIDTH, goalTopY);
-                    } else if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, FIELD_WIDTH - GOAL_WIDTH, goalBottomY) < allPacks[i].radius * allPacks[i].radius) {
-                        bounce(allPacks[i], FIELD_WIDTH - GOAL_WIDTH, goalBottomY);
-                    } else if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, FIELD_WIDTH - GOAL_WIDTH, goalTopY) < allPacks[i].radius * allPacks[i].radius) {
-                        bounce(allPacks[i], FIELD_WIDTH - GOAL_WIDTH, goalTopY);
+                    if (ball.pos.x > FIELD_WIDTH - GOAL_WIDTH && ball.pos.x < FIELD_WIDTH &&
+                            ball.pos.y > (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f &&
+                            ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
+                        players[0].goals++;
+                        new Thread(() -> {
+                            try {
+                                Thread.sleep(SCORE_SLEEP_TIME);
+                            } catch (InterruptedException e) {
+                            }
+                            reinitPositions(Side.RIGHT);
+                        }).start();
+                        goalScored = true;
                     }
                 }
 
+                if (gameView != null) {
+                    for (int i = 0; i < 3; i++) {
+                        gameView.packPosX[i] = (int) (leftSpacing + players[0].packs[i].pos.x * gameView.effectiveWidth);
+                        gameView.packPosY[i] = (int) (topSpacing + players[0].packs[i].pos.y * gameView.effectiveWidth);
+                        gameView.packFlag[i] = players[0].flag;
+                    }
+                    for (int i = 0; i < 3; i++) {
+                        gameView.packPosX[i + 3] = (int) (leftSpacing + players[1].packs[i].pos.x * gameView.effectiveWidth);
+                        gameView.packPosY[i + 3] = (int) (topSpacing + players[1].packs[i].pos.y * gameView.effectiveWidth);
+                        gameView.packFlag[i + 3] = players[1].flag;
+                    }
 
-            }
+                    gameView.ballPosX = (int) (leftSpacing + ball.pos.x * gameView.effectiveWidth);
+                    gameView.ballPosY = (int) (topSpacing + ball.pos.y * gameView.effectiveWidth);
 
-            if (!goalScored) {
-                if (ball.pos.x > 0 && ball.pos.x < GOAL_WIDTH &&
-                        ball.pos.y > (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f &&
-                        ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
-                    players[1].goals++;
-                    new Thread(() -> {
-                        try { Thread.sleep(SCORE_SLEEP_TIME); }
-                        catch (InterruptedException e) {}
-                        reinitPositions(Side.LEFT);
-                    }).start();
-                    goalScored = true;
+                    if (apEndGameCondition == AppPreferences.EndGameConditions.TIMEOUT) {
+                        gameView.timer = (int) ((MAX_GAME_DURATION - accumulatedGameDuration - SystemClock.elapsedRealtime() + timeOfLastResume) / 1000);
+                    } else {
+                        gameView.timer = (int) ((accumulatedGameDuration + SystemClock.elapsedRealtime() - timeOfLastResume) / 1000);
+                    }
+                    gameView.leftSocre = players[0].goals;
+                    gameView.rightScore = players[1].goals;
+
+                    gameView.initialized = true;
+                    gameView.invalidate();
                 }
-                if (ball.pos.x > FIELD_WIDTH - GOAL_WIDTH && ball.pos.x < FIELD_WIDTH &&
-                        ball.pos.y > (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f &&
-                        ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
-                    players[0].goals++;
-                    new Thread(() -> {
-                        try { Thread.sleep(SCORE_SLEEP_TIME); }
-                        catch (InterruptedException e) {}
-                        reinitPositions(Side.RIGHT);
-                    }).start();
-                    goalScored = true;
+
+                long iterationDuration = SystemClock.elapsedRealtime() - iterationStartTime;
+                try {
+                    long timeToSleep = ITERATION_TIME - iterationDuration;
+                    if (timeToSleep < 0) timeToSleep = 0;
+                    sleep(timeToSleep);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
-
-            if (gameView != null) {
-                for (int i = 0; i < 3; i++) {
-                    gameView.packPosX[i] = (int)(leftSpacing + players[0].packs[i].pos.x * gameView.effectiveWidth);
-                    gameView.packPosY[i] = (int)(topSpacing + players[0].packs[i].pos.y * gameView.effectiveWidth);
-                    gameView.packFlag[i] = players[0].flag;
-                }
-                for (int i = 0; i < 3; i++) {
-                    gameView.packPosX[i + 3] = (int)(leftSpacing + players[1].packs[i].pos.x * gameView.effectiveWidth);
-                    gameView.packPosY[i + 3] = (int)(topSpacing + players[1].packs[i].pos.y * gameView.effectiveWidth);
-                    gameView.packFlag[i + 3] = players[1].flag;
-                }
-
-                gameView.ballPosX = (int)(leftSpacing + ball.pos.x * gameView.effectiveWidth);
-                gameView.ballPosY = (int)(topSpacing + ball.pos.y * gameView.effectiveWidth);
-
-                if (apEndGameCondition == AppPreferences.EndGameConditions.TIMEOUT) {
-                    gameView.timer = (int)((MAX_GAME_DURATION - accumulatedGameDuration - SystemClock.elapsedRealtime() + timeOfLastResume) / 1000);
-                } else {
-                    gameView.timer = (int)((accumulatedGameDuration + SystemClock.elapsedRealtime() - timeOfLastResume) / 1000);
-                }
-                gameView.leftSocre = players[0].goals;
-                gameView.rightScore = players[1].goals;
-
-                gameView.initialized = true;
-                gameView.invalidate();
-            }
-
-            long iterationDuration = SystemClock.elapsedRealtime() - iterationStartTime;
-            try {
-                long timeToSleep = ITERATION_TIME - iterationDuration;
-                if (timeToSleep < 0) timeToSleep = 0;
-                sleep(timeToSleep);
-            } catch (InterruptedException e) { e.printStackTrace(); }
-        }
+        } catch (Exception e) {}
         finalizeGame();
     }
 
@@ -444,7 +467,9 @@ public class Game extends Thread implements Serializable {
             players[0] = players[1];
             players[1] = temp;
         }
+        running = false;
         finished = true;
+        interrupt();
 
         try {
             MainActivity.mainActivity.getFileStreamPath(DUMP_FILE_NAME).delete();
@@ -514,6 +539,7 @@ public class Game extends Thread implements Serializable {
     }
 
     private synchronized void dumpGame() {
+        gameView = null;
         ObjectOutputStream objectOut = null;
         try {
             FileOutputStream fileOut = MainActivity.mainActivity.openFileOutput(DUMP_FILE_NAME, Activity.MODE_PRIVATE);
@@ -531,6 +557,11 @@ public class Game extends Thread implements Serializable {
     }
 
     public static Game newGame(NewGameDialog.NewGameDialogData data) {
+        if (singletonGame != null) {
+            try {
+                MainActivity.mainActivity.getFileStreamPath(DUMP_FILE_NAME).delete();
+            } catch (Exception e) { e.printStackTrace(); }
+        }
         singletonGame = new Game(data);
         return singletonGame;
     }

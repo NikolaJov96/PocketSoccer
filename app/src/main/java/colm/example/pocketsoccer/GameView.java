@@ -12,6 +12,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
+import java.text.DecimalFormat;
+
 import colm.example.pocketsoccer.game_model.AppPreferences;
 import colm.example.pocketsoccer.game_model.Game;
 import colm.example.pocketsoccer.game_model.GameAssetManager;
@@ -52,6 +54,8 @@ public class GameView extends View {
     public int rightScore;
     public Game.Side turn;
 
+    private static DecimalFormat decimalFormat;
+
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
@@ -81,6 +85,8 @@ public class GameView extends View {
         packPosX = new int[6];
         packPosY = new int[6];
         packFlag = new int[6];
+
+        decimalFormat = new DecimalFormat("#00");
     }
 
     @Override
@@ -140,7 +146,7 @@ public class GameView extends View {
         canvas.drawCircle(ballPosX, ballPosY, ballRadius, packPaint);
         canvas.drawBitmap(gam.getBall(), null, drawingRect, packPaint);
 
-        String timeStr = (timer / 60) + " : " + (timer % 60);
+        String timeStr = (timer / 60) + " : " + decimalFormat.format(timer % 60);
         canvas.drawText(timeStr, getWidth() / 2.0f, getHeight() * 0.1f, timePaint);
         canvas.drawText(Integer.toString(leftSocre), getWidth() * 1.0f / 4.0f, getHeight() * 0.1f, timePaint);
         canvas.drawText(Integer.toString(rightScore), getWidth() * 3.0f / 4.0f, getHeight() * 0.1f, timePaint);

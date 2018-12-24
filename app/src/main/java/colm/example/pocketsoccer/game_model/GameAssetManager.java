@@ -53,6 +53,8 @@ public class GameAssetManager {
                 percentage += percentageStep;
                 publishProgress((int)percentage);
 
+                loaded = true;
+
             } catch (Exception e) {
                 return false;
             }
@@ -84,11 +86,14 @@ public class GameAssetManager {
     private Bitmap grayFlags[];
     private Bitmap ball;
 
+    private boolean loaded;
+
     {
         singletonGAM = null;
     }
 
     private GameAssetManager() {
+        loaded = false;
         fields = new Bitmap[NUMBER_OF_FIELDS];
         flags = new Bitmap[NUMBER_OF_FLAGS];
         grayFlags = new Bitmap[NUMBER_OF_FLAGS];
@@ -100,6 +105,10 @@ public class GameAssetManager {
             singletonGAM = new GameAssetManager();
         }
         return singletonGAM;
+    }
+
+    public boolean isLoaded() {
+        return loaded;
     }
 
     public Bitmap getField(int id) {
