@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">PocketSoccer</string>
+    <string name="app_name">Pocket Soccer</string>
+
     <string name="game_loading_message">Game Loading!</string>
     <string name="continue_game_button">continue game</string>
     <string name="new_game_button">new game</string>
