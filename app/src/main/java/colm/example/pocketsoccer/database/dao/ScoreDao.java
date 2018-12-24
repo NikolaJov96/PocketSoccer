@@ -18,7 +18,7 @@ public interface ScoreDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insert(Score score);
 
-    @Query("SELECT * FROM score WHERE first_player_name = :player1 AND second_player_name = :player2")
+    @Query("SELECT * FROM score WHERE first_player_name = :player1 AND second_player_name = :player2 ORDER BY id DESC")
     LiveData<List<Score>> getAll(String player1, String player2);
 
     @Query("SELECT COUNT(*) FROM score")

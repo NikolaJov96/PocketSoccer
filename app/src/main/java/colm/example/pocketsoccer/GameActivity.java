@@ -33,7 +33,7 @@ public class GameActivity extends Activity implements Game.GameEndListener {
 
         new Thread(() -> {
             try {
-                Thread.sleep(100);
+                Thread.sleep(300);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -43,8 +43,8 @@ public class GameActivity extends Activity implements Game.GameEndListener {
     }
 
     @Override
-    protected void finalize() throws Throwable {
-        super.finalize();
+    protected void onPause() {
+        super.onPause();
         Game.getGame().pauseGame();
         Game.getGame().clearGameView();
     }

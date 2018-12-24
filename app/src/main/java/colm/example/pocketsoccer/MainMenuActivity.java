@@ -90,7 +90,6 @@ public class MainMenuActivity extends AppCompatActivity implements NewGameDialog
                 startActivity(intent);
             }
 
-            if (model.getGame() != null) model.getGame().pauseGame();
             if (model.getGame() == null) {
                 continueGameButton.setVisibility(View.GONE);
             } else {

@@ -88,6 +88,8 @@ public class TwoPlayerStatisticsActivity extends AppCompatActivity {
     private RecyclerView.Adapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
+    private TextView scoreTextView;
+
     private GameViewModel model;
 
     private String p1;
@@ -96,7 +98,7 @@ public class TwoPlayerStatisticsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_player_statistics);
+        setContentView(R.layout.activity_two_player_statistics);
 
         Intent intent = getIntent();
         if (!intent.hasExtra(GameActivity.PLAYER_1_EXTRA) || !intent.hasExtra(GameActivity.PLAYER_2_EXTRA)) return;
@@ -111,6 +113,14 @@ public class TwoPlayerStatisticsActivity extends AppCompatActivity {
             recyclerView.setAdapter(adapter);
             adapter.notifyDataSetChanged();
         });
+        model.getAllTwoPlayerScores().observe(this, score -> {
+            for (TwoUsersScore twoUsersScore : model.getAllTwoPlayerScores().getValue()) {
+                if (twoUsersScore.getFirstPlayerName().equals(p1) && twoUsersScore.getSecondPlayerName().equals(p2)) {
+                    scoreTextView.setText(p1 + " - " + twoUsersScore.getFirstPlayerScore() + " : " + twoUsersScore.getSecondPlayerScore() + " - " + p2);
+                    break;
+                }
+            }
+        });
 
         resetButton = findViewById(R.id.reset_stats_button);
         resetButton.setOnClickListener(v -> model.deleteTowPlayers(p1, p2));
@@ -121,5 +131,7 @@ public class TwoPlayerStatisticsActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.player_statistics_recycler_view);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
+
+        scoreTextView = findViewById(R.id.score_text_view);
     }
 }

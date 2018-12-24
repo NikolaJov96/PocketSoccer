@@ -1,10 +1,19 @@
 package colm.example.pocketsoccer.game_model;
 
+import android.app.Activity;
 import android.os.SystemClock;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import colm.example.pocketsoccer.GameView;
+import colm.example.pocketsoccer.MainActivity;
+import colm.example.pocketsoccer.MainMenuActivity;
 import colm.example.pocketsoccer.NewGameDialog;
 
 public class Game extends Thread implements Serializable {
@@ -30,6 +39,8 @@ public class Game extends Thread implements Serializable {
     private static final float GAME_SPEED_COEFFICIENT = 0.3f;
 
     private static final long SCORE_SLEEP_TIME = 2500;
+
+    private static final String DUMP_FILE_NAME = "game_dump.obj";
 
     public enum Side { LEFT, RIGHT }
 
@@ -78,7 +89,6 @@ public class Game extends Thread implements Serializable {
             this.rotation = 0.0f;
         }
 
-
     }
 
     private static class Player implements Serializable {
@@ -112,7 +122,6 @@ public class Game extends Thread implements Serializable {
     }
     private GameEndListener gameEndListener;
 
-    //private AppPreferences ap;
     private int apGameSpeed;
     private AppPreferences.EndGameConditions apEndGameCondition;
 
@@ -177,7 +186,24 @@ public class Game extends Thread implements Serializable {
     }
 
     public static Game getGame() {
-        return singletonGame;
+        if (singletonGame != null) {
+            return singletonGame;
+        }
+        ObjectInputStream objectIn = null;
+        Object object = null;
+        /*try {
+            FileInputStream fileIn = MainActivity.mainActivity.getApplicationContext().openFileInput(DUMP_FILE_NAME);
+            objectIn = new ObjectInputStream(fileIn);
+            object = objectIn.readObject();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (objectIn != null) {
+                try { objectIn.close(); }
+                catch (IOException ignored) {}
+            }
+        }*/
+        return (Game)object;
     }
 
     public static void purgeGame() {
@@ -215,6 +241,7 @@ public class Game extends Thread implements Serializable {
                 }
                 lastUpdateTime = SystemClock.elapsedRealtime();
 
+                // collision detection and resolving
                 for (int i = 0; i < 6; i++) {
                     for (int j = i + 1; j < 7; j++) {
                         float distSq = dstSq(allPacks[i].pos.x, allPacks[i].pos.y, allPacks[j].pos.x, allPacks[j].pos.y);
@@ -418,6 +445,11 @@ public class Game extends Thread implements Serializable {
             players[1] = temp;
         }
         finished = true;
+
+        try {
+            MainActivity.mainActivity.getFileStreamPath(DUMP_FILE_NAME).delete();
+        } catch (Exception e) { e.printStackTrace(); }
+
         if (gameEndListener != null) {
             gameEndListener.gameFinished(players[0].name, players[1].name, players[0].goals, players[1].goals, (int)(accumulatedGameDuration / 1000));
         }
@@ -468,6 +500,7 @@ public class Game extends Thread implements Serializable {
         this.gameEndListener = gameEndListener;
         timeOfLastResume = SystemClock.elapsedRealtime();
         timeOfTurnChange = SystemClock.elapsedRealtime();
+        lastUpdateTime = SystemClock.elapsedRealtime();
         running = true;
         notifyAll();
     }
@@ -477,6 +510,24 @@ public class Game extends Thread implements Serializable {
         accumulatedGameDuration += SystemClock.elapsedRealtime() - timeOfLastResume;
         accumulatedTurnDuration += SystemClock.elapsedRealtime() - timeOfTurnChange;
         running = false;
+        dumpGame();
+    }
+
+    private synchronized void dumpGame() {
+        ObjectOutputStream objectOut = null;
+        try {
+            FileOutputStream fileOut = MainActivity.mainActivity.openFileOutput(DUMP_FILE_NAME, Activity.MODE_PRIVATE);
+            objectOut = new ObjectOutputStream(fileOut);
+            objectOut.writeObject(this);
+            fileOut.getFD().sync();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (objectOut != null) {
+                try { objectOut.close(); }
+                catch (IOException e) {}
+            }
+        }
     }
 
     public static Game newGame(NewGameDialog.NewGameDialogData data) {
