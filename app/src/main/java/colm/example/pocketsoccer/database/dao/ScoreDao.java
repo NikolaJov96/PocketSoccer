@@ -18,8 +18,8 @@ public interface ScoreDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insert(Score score);
 
-    @Query("SELECT * FROM score")
-    LiveData<List<Score>> getAll();
+    @Query("SELECT * FROM score WHERE first_player_name = :player1 AND second_player_name = :player2")
+    LiveData<List<Score>> getAll(String player1, String player2);
 
     @Query("SELECT COUNT(*) FROM score")
     int getNumberOfGames();
@@ -30,12 +30,6 @@ public interface ScoreDao {
             "   CASE WHEN second_player_score > first_player_score THEN 1 ELSE 0 END AS w2" +
             "   FROM score)" +
             " GROUP BY first_player_name, second_player_name")
-
-    /*@Query("SELECT first_player_name, second_player_name, " +
-            "Count(first_player_score>second_player_score) AS first_player_wins, " +
-            "Count(first_player_score<second_player_score) AS second_player_wins" +
-            " FROM score" +
-            " GROUP BY first_player_name, second_player_name")*/
     LiveData<List<TwoUsersScore>> getTwoUserScores();
 
     @Query("DELETE FROM score")

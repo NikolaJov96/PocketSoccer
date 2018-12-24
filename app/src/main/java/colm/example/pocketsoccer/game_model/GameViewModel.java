@@ -3,6 +3,8 @@ package colm.example.pocketsoccer.game_model;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Transformations;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -16,9 +18,20 @@ import colm.example.pocketsoccer.repository.Repository;
 
 public class GameViewModel extends AndroidViewModel {
 
+    public static class FilterStruct {
+        public String p1;
+        public String p2;
+
+        public FilterStruct(String p1, String p2) {
+            this.p1 = p1;
+            this.p2 = p2;
+        }
+    }
+
     private Repository repository;
 
     private LiveData<List<Score>> allScores;
+    private LiveData<FilterStruct> filterLiveDataScores;
     private LiveData<List<TwoUsersScore>> allTwoPlayerScores;
 
     private AppPreferences appPreferences;
@@ -30,7 +43,9 @@ public class GameViewModel extends AndroidViewModel {
     public GameViewModel(Application application) {
         super(application);
         repository = new Repository(application);
-        allScores = repository.getAllScores();
+        filterLiveDataScores = new MutableLiveData<>();
+        ((MutableLiveData<FilterStruct>) filterLiveDataScores).setValue(new FilterStruct("", ""));
+        allScores = Transformations.switchMap(filterLiveDataScores, input -> repository.getAllScores(input)); //repository.getAllScores();
         allTwoPlayerScores = repository.getAllTwoPlayerScores();
         appPreferences = AppPreferences.getAppPreferences();
         gameAssetManager = GameAssetManager.getGameAssetManager();
@@ -72,5 +87,9 @@ public class GameViewModel extends AndroidViewModel {
 
     public void newGame(NewGameDialog.NewGameDialogData data) {
         game = Game.newGame(data);
+    }
+
+    public void updateFilter(FilterStruct filterStruct) {
+        ((MutableLiveData<FilterStruct>) filterLiveDataScores).setValue(filterStruct);
     }
 }

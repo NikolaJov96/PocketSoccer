@@ -17,23 +17,19 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import colm.example.pocketsoccer.database.entity.Score;
 import colm.example.pocketsoccer.database.entity.TwoUsersScore;
+import colm.example.pocketsoccer.game_model.Game;
 import colm.example.pocketsoccer.game_model.GameViewModel;
 
-class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
+class TwoPlayersRecyclerViewAdapter extends RecyclerView.Adapter<TwoPlayersRecyclerViewAdapter.ViewHolder> {
 
-    interface RecyclerViewClickListener {
-        void RecyclerViewClicked(String p1, String p2);
-    }
-    private RecyclerViewClickListener recyclerViewClickListener;
-
-    private LiveData<List<TwoUsersScore>> scores;
+    private LiveData<List<Score>> scores;
 
     private Context context;
 
     static class ViewHolder extends RecyclerView.ViewHolder {
 
-        View view;
         TextView player1Name;
         TextView player2Name;
         TextView score1;
@@ -41,7 +37,6 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
 
         ViewHolder(View view) {
             super(view);
-            this.view = view;
             this.player1Name = view.findViewById(R.id.item_p1);
             this.player2Name = view.findViewById(R.id.item_p2);
             this.score1 = view.findViewById(R.id.item_score1);
@@ -49,8 +44,7 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
         }
     }
 
-    RecyclerViewAdapter(LiveData<List<TwoUsersScore>> scores, Context context, RecyclerViewClickListener recyclerViewClickListener) {
-        this.recyclerViewClickListener = recyclerViewClickListener;
+    TwoPlayersRecyclerViewAdapter(LiveData<List<Score>> scores, Context context) {
         this.scores = scores;
         this.context = context;
     }
@@ -68,10 +62,6 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
         viewHolder.player2Name.setText(scores.getValue().get(i).getSecondPlayerName());
         viewHolder.score1.setText(Integer.toString(scores.getValue().get(i).getFirstPlayerScore()));
         viewHolder.score2.setText(Integer.toString(scores.getValue().get(i).getSecondPlayerScore()));
-        viewHolder.view.setOnClickListener(v ->
-                recyclerViewClickListener.RecyclerViewClicked(
-                        scores.getValue().get(i).getFirstPlayerName(),
-                        scores.getValue().get(i).getSecondPlayerName()));
     }
 
     @Override
@@ -85,7 +75,7 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
 
 }
 
-public class PlayerStatisticsActivity extends AppCompatActivity implements RecyclerViewAdapter.RecyclerViewClickListener {
+public class TwoPlayerStatisticsActivity extends AppCompatActivity {
 
     private Button resetButton;
     private Button backButton;
@@ -96,21 +86,30 @@ public class PlayerStatisticsActivity extends AppCompatActivity implements Recyc
 
     private GameViewModel model;
 
+    private String p1;
+    private String p2;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player_statistics);
 
+        Intent intent = getIntent();
+        if (!intent.hasExtra(GameActivity.PLAYER_1_EXTRA) || !intent.hasExtra(GameActivity.PLAYER_2_EXTRA)) return;
+        p1 = intent.getStringExtra(GameActivity.PLAYER_1_EXTRA);
+        p2 = intent.getStringExtra(GameActivity.PLAYER_2_EXTRA);
+
         model = ViewModelProviders.of(this).get(GameViewModel.class);
+        model.updateFilter(new GameViewModel.FilterStruct(p1, p2));
         Context context = this;
-        model.getAllTwoPlayerScores().observe(this, scores -> {
-            adapter = new RecyclerViewAdapter(model.getAllTwoPlayerScores(), context, this);
+        model.getAllScores().observe(this, scores -> {
+            adapter = new TwoPlayersRecyclerViewAdapter(model.getAllScores(), context);
             recyclerView.setAdapter(adapter);
             adapter.notifyDataSetChanged();
         });
 
         resetButton = findViewById(R.id.reset_stats_button);
-        resetButton.setOnClickListener(v -> model.deleteAllScores());
+        resetButton.setOnClickListener(v -> model.deleteTowPlayers(p1, p2));
 
         backButton = findViewById(R.id.back_stats_button);
         backButton.setOnClickListener(v -> finish());
@@ -118,13 +117,5 @@ public class PlayerStatisticsActivity extends AppCompatActivity implements Recyc
         recyclerView = findViewById(R.id.player_statistics_recycler_view);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-    }
-
-    @Override
-    public void RecyclerViewClicked(String p1, String p2) {
-        Intent intent = new Intent(this, TwoPlayerStatisticsActivity.class);
-        intent.putExtra(GameActivity.PLAYER_1_EXTRA, p1);
-        intent.putExtra(GameActivity.PLAYER_2_EXTRA, p2);
-        startActivity(intent);
     }
 }

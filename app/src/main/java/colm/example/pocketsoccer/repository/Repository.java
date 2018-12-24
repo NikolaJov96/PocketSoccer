@@ -5,11 +5,13 @@ import android.content.Context;
 import android.system.StructUtsname;
 
 import java.util.List;
+import java.util.logging.Filter;
 
 import colm.example.pocketsoccer.database.PocketSoccerDatabase;
 import colm.example.pocketsoccer.database.dao.ScoreDao;
 import colm.example.pocketsoccer.database.entity.Score;
 import colm.example.pocketsoccer.database.entity.TwoUsersScore;
+import colm.example.pocketsoccer.game_model.GameViewModel;
 
 public class Repository {
 
@@ -21,11 +23,11 @@ public class Repository {
     public Repository(Context context) {
         PocketSoccerDatabase db = PocketSoccerDatabase.getDatabase(context);
         scoreDao = db.scoreDao();
-        allScores = scoreDao.getAll();
         allTwoPlayerScores = scoreDao.getTwoUserScores();
     }
 
-    public LiveData<List<Score>> getAllScores() {
+    public LiveData<List<Score>> getAllScores(GameViewModel.FilterStruct filterStruct) {
+        allScores = scoreDao.getAll(filterStruct.p1, filterStruct.p2);
         return allScores;
     }
 

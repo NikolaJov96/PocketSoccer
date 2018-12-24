@@ -27,7 +27,7 @@
             android:name=".GameActivity"
             android:configChanges="orientation"
             android:screenOrientation="landscape"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"/>
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
         <activity
             android:name=".PlayerStatisticsActivity"
             android:configChanges="orientation"
@@ -36,6 +36,7 @@
             android:name=".SettingsActivity"
             android:configChanges="orientation"
             android:screenOrientation="landscape" />
+        <activity android:name=".TwoPlayerStatisticsActivity"></activity>
     </application>
 
 </manifest>

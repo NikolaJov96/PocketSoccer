@@ -15,7 +15,7 @@
     <string name="right_field_option">Right field option</string>
     <string name="selected_field_option">Selected field option</string>
 
-    <string name="stats_score_string_template">%1$d : %2$d</string>
+    <string name="stats_score_string_template">%1$d : </string>
     <string name="reset_all_settings_button">reset all settings</string>
 
     <string name="left_flag1_option">Left flag option for player 1</string>
@@ -34,4 +34,5 @@
     <string name="default_player2_name">player2</string>
     <string name="player_1_name_hint">player 1 name</string>
     <string name="player_2_name_hint">player 2 name</string>
+    <string name="score_separator">:</string>
 </resources>

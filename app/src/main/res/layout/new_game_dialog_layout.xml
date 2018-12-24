@@ -38,7 +38,8 @@
                 android:layout_gravity="center"
                 android:inputType="text"
                 android:importantForAutofill="no"
-                android:hint="@string/player_1_name_hint"/>
+                android:hint="@string/player_1_name_hint"
+                android:maxLength="20"/>
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -96,7 +97,8 @@
                 android:layout_gravity="center"
                 android:inputType="text"
                 android:importantForAutofill="no"
-                android:hint="@string/player_2_name_hint"/>
+                android:hint="@string/player_2_name_hint"
+                android:maxLength="20"/>
 
             <LinearLayout
                 android:layout_width="wrap_content"
