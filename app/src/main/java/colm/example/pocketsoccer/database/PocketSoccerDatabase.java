@@ -11,7 +11,7 @@ import android.support.annotation.NonNull;
 import colm.example.pocketsoccer.database.dao.ScoreDao;
 import colm.example.pocketsoccer.database.entity.Score;
 
-@Database(entities = {Score.class}, version = 2, exportSchema = false)
+@Database(entities = {Score.class}, version = 3, exportSchema = false)
 public abstract class PocketSoccerDatabase extends RoomDatabase {
 
     private static PocketSoccerDatabase singletonDB;
@@ -62,21 +62,21 @@ public abstract class PocketSoccerDatabase extends RoomDatabase {
         @Override
         protected Void doInBackground(final Void... params) {
             if (scoreDao.getNumberOfGames() == 0) {
-                scoreDao.insert(new Score("Pera", "Zika", 1, 3));
-                scoreDao.insert(new Score("Pera", "Zika", 1, 2));
-                scoreDao.insert(new Score("Pera", "Zika", 2, 1));
-                scoreDao.insert(new Score("Pera", "Zika", 2, 3));
+                scoreDao.insert(new Score("Pera", "Zika", 1, 3, 300));
+                scoreDao.insert(new Score("Pera", "Zika", 1, 2, 231));
+                scoreDao.insert(new Score("Pera", "Zika", 2, 1, 231));
+                scoreDao.insert(new Score("Pera", "Zika", 2, 3, 231));
 
-                scoreDao.insert(new Score("Mika", "Pera", 1, 3));
-                scoreDao.insert(new Score("Mika", "Pera", 2, 2));
-                scoreDao.insert(new Score("Mika", "Pera", 3, 0));
-                scoreDao.insert(new Score("Mika", "Pera", 2, 2));
+                scoreDao.insert(new Score("Mika", "Pera", 1, 3, 231));
+                scoreDao.insert(new Score("Mika", "Pera", 2, 2, 231));
+                scoreDao.insert(new Score("Mika", "Pera", 3, 0, 231));
+                scoreDao.insert(new Score("Mika", "Pera", 2, 2, 231));
 
-                scoreDao.insert(new Score("Mika", "Zika", 0, 2));
-                scoreDao.insert(new Score("Mika", "Zika", 3, 2));
-                scoreDao.insert(new Score("Mika", "Zika", 3, 3));
-                scoreDao.insert(new Score("Mika", "Zika", 1, 3));
-                scoreDao.insert(new Score("Mika", "Zika", 2, 0));
+                scoreDao.insert(new Score("Mika", "Zika", 0, 2, 231));
+                scoreDao.insert(new Score("Mika", "Zika", 3, 2, 231));
+                scoreDao.insert(new Score("Mika", "Zika", 3, 3, 231));
+                scoreDao.insert(new Score("Mika", "Zika", 1, 3, 231));
+                scoreDao.insert(new Score("Mika", "Zika", 2, 0, 231));
             }
             return null;
         }

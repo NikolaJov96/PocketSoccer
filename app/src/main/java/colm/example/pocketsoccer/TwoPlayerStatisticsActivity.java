@@ -34,6 +34,7 @@ class TwoPlayersRecyclerViewAdapter extends RecyclerView.Adapter<TwoPlayersRecyc
         TextView player2Name;
         TextView score1;
         TextView score2;
+        TextView time;
 
         ViewHolder(View view) {
             super(view);
@@ -41,6 +42,7 @@ class TwoPlayersRecyclerViewAdapter extends RecyclerView.Adapter<TwoPlayersRecyc
             this.player2Name = view.findViewById(R.id.item_p2);
             this.score1 = view.findViewById(R.id.item_score1);
             this.score2 = view.findViewById(R.id.item_score2);
+            this.time = view.findViewById(R.id.game_duration);
         }
     }
 
@@ -52,7 +54,7 @@ class TwoPlayersRecyclerViewAdapter extends RecyclerView.Adapter<TwoPlayersRecyc
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.recycler_view_item_layout, viewGroup, false);
+        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.two_player_recycler_view_item_layout, viewGroup, false);
         return new ViewHolder(view);
     }
 
@@ -62,6 +64,8 @@ class TwoPlayersRecyclerViewAdapter extends RecyclerView.Adapter<TwoPlayersRecyc
         viewHolder.player2Name.setText(scores.getValue().get(i).getSecondPlayerName());
         viewHolder.score1.setText(Integer.toString(scores.getValue().get(i).getFirstPlayerScore()));
         viewHolder.score2.setText(Integer.toString(scores.getValue().get(i).getSecondPlayerScore()));
+        int t = scores.getValue().get(i).getGameDuration();
+        viewHolder.time.setText((t / 60) + ":" + (t % 60));
     }
 
     @Override

@@ -13,6 +13,9 @@ public class GameActivity extends Activity implements Game.GameEndListener {
 
     public static final String PLAYER_1_EXTRA = "PLAYER_1_EXTRA";
     public static final String PLAYER_2_EXTRA = "PLAYER_2_EXTRA";
+    public static final String PLAYER_1_GOALS = "PLAYER_1_GOALS";
+    public static final String PLAYER_2_GOALS = "PLAYER_2_GOALS";
+    public static final String TIME_EXTRA = "TIME_EXTRA";
 
     private GameView gameView;
 
@@ -47,10 +50,14 @@ public class GameActivity extends Activity implements Game.GameEndListener {
     }
 
     @Override
-    public void gameFinished(String player1, String player2) {
+    public void gameFinished(String player1, String player2, int goals1, int goals2, int time) {
+
         Intent intent = new Intent();
         intent.putExtra(PLAYER_1_EXTRA, player1);
         intent.putExtra(PLAYER_2_EXTRA, player2);
+        intent.putExtra(PLAYER_1_GOALS, goals1);
+        intent.putExtra(PLAYER_2_GOALS, goals2);
+        intent.putExtra(TIME_EXTRA, time);
         setResult(Activity.RESULT_OK, intent);
         finish();
     }

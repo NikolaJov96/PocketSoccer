@@ -60,7 +60,7 @@ public class GameViewModel extends AndroidViewModel {
         return allTwoPlayerScores;
     }
 
-    void insert(Score score) {
+    public void insert(Score score) {
         repository.insertScore(score);
     }
 
@@ -87,6 +87,10 @@ public class GameViewModel extends AndroidViewModel {
 
     public void newGame(NewGameDialog.NewGameDialogData data) {
         game = Game.newGame(data);
+    }
+
+    public void purgeGame() {
+        Game.purgeGame();
     }
 
     public void updateFilter(FilterStruct filterStruct) {

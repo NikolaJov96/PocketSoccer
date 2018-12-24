@@ -25,11 +25,23 @@ public class Score {
     @ColumnInfo(name = "second_player_score")
     private int secondPlayerScore;
 
-    public Score(@NonNull String firstPlayerName, @NonNull String secondPlayerName, int firstPlayerScore, int secondPlayerScore) {
+    @ColumnInfo(name = "game_duration")
+    private int gameDuration;
+
+    public Score(@NonNull String firstPlayerName, @NonNull String secondPlayerName, int firstPlayerScore, int secondPlayerScore, int gameDuration) {
         this.firstPlayerName = firstPlayerName;
         this.secondPlayerName = secondPlayerName;
         this.firstPlayerScore = firstPlayerScore;
         this.secondPlayerScore = secondPlayerScore;
+        this.gameDuration = gameDuration;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     @NonNull
@@ -66,11 +78,11 @@ public class Score {
         this.secondPlayerScore = secondPlayerScore;
     }
 
-    public int getId() {
-        return id;
+    public int getGameDuration() {
+        return gameDuration;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setGameDuration(int gameDuration) {
+        this.gameDuration = gameDuration;
     }
 }

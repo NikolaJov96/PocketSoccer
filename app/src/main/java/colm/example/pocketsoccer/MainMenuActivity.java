@@ -12,6 +12,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import java.util.Collections;
+
+import colm.example.pocketsoccer.database.entity.Score;
 import colm.example.pocketsoccer.game_model.GameViewModel;
 
 public class MainMenuActivity extends AppCompatActivity implements NewGameDialog.NewGameDialogListener {
@@ -68,11 +71,31 @@ public class MainMenuActivity extends AppCompatActivity implements NewGameDialog
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (model.getGame() != null) model.getGame().pauseGame();
-        if (model.getGame() == null) {
-            continueGameButton.setVisibility(View.GONE);
-        } else {
-            continueGameButton.setVisibility(View.VISIBLE);
+        if (requestCode == GAME_ACTIVITY_REQUEST_CODE) {
+            if (data != null && data.hasExtra(GameActivity.PLAYER_1_EXTRA) && data.hasExtra(GameActivity.PLAYER_2_EXTRA)) {
+                model.purgeGame();
+
+                String p1N = data.getStringExtra(GameActivity.PLAYER_1_EXTRA);
+                String p2N = data.getStringExtra(GameActivity.PLAYER_2_EXTRA);
+                int goals1 = data.getIntExtra(GameActivity.PLAYER_1_GOALS, 0);
+                int goals2 = data.getIntExtra(GameActivity.PLAYER_2_GOALS, 0);
+                int time = data.getIntExtra(GameActivity.TIME_EXTRA, 0);
+
+                Score score = new Score(p1N, p2N, goals1, goals2, time);
+                model.insert(score);
+
+                Intent intent = new Intent(this, TwoPlayerStatisticsActivity.class);
+                intent.putExtra(GameActivity.PLAYER_1_EXTRA, p1N);
+                intent.putExtra(GameActivity.PLAYER_2_EXTRA, p2N);
+                startActivity(intent);
+            }
+
+            if (model.getGame() != null) model.getGame().pauseGame();
+            if (model.getGame() == null) {
+                continueGameButton.setVisibility(View.GONE);
+            } else {
+                continueGameButton.setVisibility(View.VISIBLE);
+            }
         }
     }
 }

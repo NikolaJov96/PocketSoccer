@@ -2,9 +2,7 @@ package colm.example.pocketsoccer.game_model;
 
 import android.os.SystemClock;
 
-import java.io.RandomAccessFile;
 import java.io.Serializable;
-import java.util.Random;
 
 import colm.example.pocketsoccer.GameView;
 import colm.example.pocketsoccer.NewGameDialog;
@@ -29,7 +27,7 @@ public class Game extends Thread implements Serializable {
     private static final float KICK_COEFFICIENT = 2.3f;
     private static final float SPEED_BLEED_COEFFICIENT = 0.992f;
     private static final float BOUNCE_BLEED_COEFFICIENT = 0.93f;
-    private static final float GAME_SEPPD_COEFFICIENT = 0.2f;
+    private static final float GAME_SPEED_COEFFICIENT = 0.3f;
 
     private static final long SCORE_SLEEP_TIME = 2500;
 
@@ -110,7 +108,7 @@ public class Game extends Thread implements Serializable {
     private static Game singletonGame;
 
     public interface GameEndListener {
-        void gameFinished(String player1, String player2);
+        void gameFinished(String player1, String player2, int goals1, int goals2, int time);
     }
     private GameEndListener gameEndListener;
 
@@ -182,6 +180,14 @@ public class Game extends Thread implements Serializable {
         return singletonGame;
     }
 
+    public static void purgeGame() {
+        if (singletonGame != null) {
+            singletonGame.pauseGame();
+            singletonGame.clearGameView();
+        }
+        singletonGame = null;
+    }
+
     @Override
     public void run() {
         while (!finished) {
@@ -200,7 +206,7 @@ public class Game extends Thread implements Serializable {
                 }
 
                 // update pack and ball positions
-                float dt = (SystemClock.elapsedRealtime() - lastUpdateTime) * 0.001f * (1.0f + apGameSpeed * GAME_SEPPD_COEFFICIENT);
+                float dt = (SystemClock.elapsedRealtime() - lastUpdateTime) * 0.001f * (1.0f + apGameSpeed * GAME_SPEED_COEFFICIENT);
                 for (int i = 0; i < 7; i++) {
                     allPacks[i].pos.x += allPacks[i].vel.x * dt;
                     allPacks[i].pos.y += allPacks[i].vel.y * dt;
@@ -405,10 +411,15 @@ public class Game extends Thread implements Serializable {
     }
 
     private void finalizeGame() {
-        // add game to database
+        accumulatedGameDuration += SystemClock.elapsedRealtime() - timeOfLastResume;
+        if (players[0].name.compareTo(players[1].name) > 0) {
+            Player temp = players[0];
+            players[0] = players[1];
+            players[1] = temp;
+        }
         finished = true;
         if (gameEndListener != null) {
-            gameEndListener.gameFinished(players[0].name, players[1].name);
+            gameEndListener.gameFinished(players[0].name, players[1].name, players[0].goals, players[1].goals, (int)(accumulatedGameDuration / 1000));
         }
     }
 
