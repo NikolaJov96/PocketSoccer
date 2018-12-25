@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import colm.example.pocketsoccer.GameView;
 import colm.example.pocketsoccer.MainActivity;
@@ -32,6 +33,8 @@ public class Game extends Thread implements Serializable {
     private static final int GOALS_FOR_THE_WIN = 3;
 
     private static final float KICK_COEFFICIENT = 2.3f;
+    private static final float SPIN_COEFFICIENT = 80.0f;
+    private static final float PACK_PACK_SPIN_COEFFICIENT = SPIN_COEFFICIENT * 3.0f;
     private static final float SPEED_BLEED_COEFFICIENT = 0.992f;
     private static final float BOUNCE_BLEED_COEFFICIENT = 0.93f;
     private static final float GAME_SPEED_COEFFICIENT = 0.3f;
@@ -64,7 +67,8 @@ public class Game extends Thread implements Serializable {
         private Vec2 initVel;
         Vec2 pos;
         Vec2 vel;
-        float rotation;
+        float rot;
+        float rotVel;
         float radius;
 
         Pack(Vec2 pos, float radius) {
@@ -84,7 +88,8 @@ public class Game extends Thread implements Serializable {
         void reinitPositions() {
             this.pos = new Vec2(initPos.x, initPos.y);
             this.vel = new Vec2(initVel.x, initVel.y);
-            this.rotation = 0.0f;
+            this.rot = 0.0f;
+            this.rotVel = 0.0f;
         }
 
     }
@@ -245,12 +250,15 @@ public class Game extends Thread implements Serializable {
                     for (int i = 0; i < 7; i++) {
                         allPacks[i].pos.x += allPacks[i].vel.x * dt;
                         allPacks[i].pos.y += allPacks[i].vel.y * dt;
+                        allPacks[i].rot += allPacks[i].rotVel * dt;
                         allPacks[i].vel.x *= SPEED_BLEED_COEFFICIENT;
                         allPacks[i].vel.y *= SPEED_BLEED_COEFFICIENT;
+                        allPacks[i].rotVel *= SPEED_BLEED_COEFFICIENT;
                     }
                     lastUpdateTime = SystemClock.elapsedRealtime();
 
                     // collision detection and resolving
+                    // packs vs packs
                     for (int i = 0; i < 6; i++) {
                         for (int j = i + 1; j < 7; j++) {
                             float distSq = dstSq(allPacks[i].pos.x, allPacks[i].pos.y, allPacks[j].pos.x, allPacks[j].pos.y);
@@ -312,8 +320,10 @@ public class Game extends Thread implements Serializable {
 
                                 allPacks[i].vel.x = (float) (-Math.cos(centerVecAngl) * norm1 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
                                 allPacks[i].vel.y = (float) (-Math.sin(centerVecAngl) * norm1 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
+                                allPacks[i].rotVel += (par1 - par2) / 2.0 * PACK_PACK_SPIN_COEFFICIENT;
                                 allPacks[j].vel.x = (float) (Math.cos(centerVecAngl) * norm2 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par2) * BOUNCE_BLEED_COEFFICIENT;
                                 allPacks[j].vel.y = (float) (Math.sin(centerVecAngl) * norm2 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par2) * BOUNCE_BLEED_COEFFICIENT;
+                                allPacks[j].rotVel -= (par1 - par2) / 2.0 * PACK_PACK_SPIN_COEFFICIENT;
                             }
                         }
                     }
@@ -321,48 +331,63 @@ public class Game extends Thread implements Serializable {
                     float goalBottomY = (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f;
                     float goalTopY = FIELD_HEIGHT - goalBottomY;
                     for (int i = 0; i < 7; i++) {
+                        // packs vs field edges
                         if (allPacks[i].pos.x - allPacks[i].radius < 0) {
                             allPacks[i].vel.x = Math.abs(allPacks[i].vel.x) * BOUNCE_BLEED_COEFFICIENT;
+                            allPacks[i].rotVel += allPacks[i].vel.y * SPIN_COEFFICIENT;
                         }
                         if (allPacks[i].pos.x + allPacks[i].radius > FIELD_WIDTH) {
                             allPacks[i].vel.x = -Math.abs(allPacks[i].vel.x) * BOUNCE_BLEED_COEFFICIENT;
+                            allPacks[i].rotVel -= allPacks[i].vel.y * SPIN_COEFFICIENT;
                         }
                         if (allPacks[i].pos.y - allPacks[i].radius < 0) {
                             allPacks[i].vel.y = Math.abs(allPacks[i].vel.y) * BOUNCE_BLEED_COEFFICIENT;
+                            allPacks[i].rotVel -= allPacks[i].vel.x * SPIN_COEFFICIENT;
                         }
                         if (allPacks[i].pos.y + allPacks[i].radius > FIELD_HEIGHT) {
                             allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y) * BOUNCE_BLEED_COEFFICIENT;
+                            allPacks[i].rotVel += allPacks[i].vel.x * SPIN_COEFFICIENT;
                         }
 
+                        // packs vs goal edges
                         if (allPacks[i].pos.x < GOAL_WIDTH && allPacks[i].pos.y > goalBottomY - allPacks[i].radius && allPacks[i].pos.y < goalBottomY + allPacks[i].radius) {
                             if (allPacks[i].pos.y < goalBottomY) {
                                 allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
+                                allPacks[i].rotVel += allPacks[i].vel.x * SPIN_COEFFICIENT;
                             } else {
                                 allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
+                                allPacks[i].rotVel -= allPacks[i].vel.x * SPIN_COEFFICIENT;
                             }
                         }
                         if (allPacks[i].pos.x < GOAL_WIDTH && allPacks[i].pos.y > goalTopY - allPacks[i].radius && allPacks[i].pos.y < goalTopY + allPacks[i].radius) {
                             if (allPacks[i].pos.y < goalTopY) {
                                 allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
+                                allPacks[i].rotVel += allPacks[i].vel.x * SPIN_COEFFICIENT;
                             } else {
                                 allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
+                                allPacks[i].rotVel -= allPacks[i].vel.x * SPIN_COEFFICIENT;
                             }
                         }
                         if (allPacks[i].pos.x > FIELD_WIDTH - GOAL_WIDTH && allPacks[i].pos.y > goalBottomY - allPacks[i].radius && allPacks[i].pos.y < goalBottomY + allPacks[i].radius) {
                             if (allPacks[i].pos.y < goalBottomY) {
                                 allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
+                                allPacks[i].rotVel += allPacks[i].vel.x * SPIN_COEFFICIENT;
                             } else {
                                 allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
+                                allPacks[i].rotVel -= allPacks[i].vel.x * SPIN_COEFFICIENT;
                             }
                         }
                         if (allPacks[i].pos.x > FIELD_WIDTH - GOAL_WIDTH && allPacks[i].pos.y > goalTopY - allPacks[i].radius && allPacks[i].pos.y < goalTopY + allPacks[i].radius) {
                             if (allPacks[i].pos.y < goalTopY) {
                                 allPacks[i].vel.y = -Math.abs(allPacks[i].vel.y);
+                                allPacks[i].rotVel += allPacks[i].vel.x * SPIN_COEFFICIENT;
                             } else {
                                 allPacks[i].vel.y = Math.abs(allPacks[i].vel.y);
+                                allPacks[i].rotVel -= allPacks[i].vel.x * SPIN_COEFFICIENT;
                             }
                         }
 
+                        // packs vs goal post
                         if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, GOAL_WIDTH, goalBottomY) < allPacks[i].radius * allPacks[i].radius) {
                             bounce(allPacks[i], GOAL_WIDTH, goalBottomY);
                         } else if (dstSq(allPacks[i].pos.x, allPacks[i].pos.y, GOAL_WIDTH, goalTopY) < allPacks[i].radius * allPacks[i].radius) {
@@ -408,16 +433,19 @@ public class Game extends Thread implements Serializable {
                     for (int i = 0; i < 3; i++) {
                         gameView.packPosX[i] = (int) (leftSpacing + players[0].packs[i].pos.x * gameView.effectiveWidth);
                         gameView.packPosY[i] = (int) (topSpacing + players[0].packs[i].pos.y * gameView.effectiveWidth);
+                        gameView.packRot[i] = (int)players[0].packs[i].rot;
                         gameView.packFlag[i] = players[0].flag;
                     }
                     for (int i = 0; i < 3; i++) {
                         gameView.packPosX[i + 3] = (int) (leftSpacing + players[1].packs[i].pos.x * gameView.effectiveWidth);
                         gameView.packPosY[i + 3] = (int) (topSpacing + players[1].packs[i].pos.y * gameView.effectiveWidth);
+                        gameView.packRot[i + 3] = (int)players[1].packs[i].rot;
                         gameView.packFlag[i + 3] = players[1].flag;
                     }
 
-                    gameView.ballPosX = (int) (leftSpacing + ball.pos.x * gameView.effectiveWidth);
-                    gameView.ballPosY = (int) (topSpacing + ball.pos.y * gameView.effectiveWidth);
+                    gameView.ballPosX = (int)(leftSpacing + ball.pos.x * gameView.effectiveWidth);
+                    gameView.ballPosY = (int)(topSpacing + ball.pos.y * gameView.effectiveWidth);
+                    gameView.ballRot = (int)ball.rot;
 
                     if (apEndGameCondition == AppPreferences.EndGameConditions.TIMEOUT) {
                         gameView.timer = (int) ((MAX_GAME_DURATION - accumulatedGameDuration - SystemClock.elapsedRealtime() + timeOfLastResume) / 1000);
@@ -519,6 +547,7 @@ public class Game extends Thread implements Serializable {
 
         pack.vel.x = (float)(-Math.cos(centerVecAngl) * norm1 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
         pack.vel.y = (float)(-Math.sin(centerVecAngl) * norm1 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
+        pack.rotVel -= par1 / 2.0 * PACK_PACK_SPIN_COEFFICIENT;
     }
 
     public synchronized void resumeGame(GameEndListener gameEndListener) {
