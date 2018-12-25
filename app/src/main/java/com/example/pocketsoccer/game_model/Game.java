@@ -51,8 +51,6 @@ public class Game extends Thread implements Serializable {
         float x;
         float y;
 
-        public Vec2() {}
-
         Vec2(float x, float y) {
             this.x = x;
             this.y = y;
@@ -73,13 +71,6 @@ public class Game extends Thread implements Serializable {
         Pack(Vec2 pos, float radius) {
             this.initPos = new Vec2(pos.x, pos.y);
             this.initVel = new Vec2(0.0f, 0.0f);
-            reinitPositions();
-            this.radius = radius;
-        }
-
-        public Pack(Vec2 pos, Vec2 vel, float radius) {
-            this.initPos = new Vec2(pos.x, pos.y);
-            this.initVel = new Vec2(vel.x, vel.y);
             reinitPositions();
             this.radius = radius;
         }
@@ -233,9 +224,7 @@ public class Game extends Thread implements Serializable {
 
         allPacks = new Pack[7];
         for (int p = 0; p < 2; p++) {
-            for (int i = 0; i < 3; i++) {
-                allPacks[3 * p + i] = players[p].packs[i];
-            }
+            System.arraycopy(players[p].packs, 0, allPacks, 3 * p, 3);
         }
         allPacks[6] = ball;
 
@@ -265,9 +254,9 @@ public class Game extends Thread implements Serializable {
             FileInputStream fileIn = MainActivity.mainActivity.getApplicationContext().openFileInput(DUMP_FILE_NAME);
             objectIn = new ObjectInputStream(fileIn);
             object = objectIn.readObject();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
+        }
+        catch (Exception ignored) {}
+        finally {
             if (objectIn != null) {
                 try { objectIn.close(); }
                 catch (IOException ignored) {}
@@ -280,7 +269,7 @@ public class Game extends Thread implements Serializable {
         return singletonGame;
     }
 
-    public static void purgeGame() {
+    static void purgeGame() {
         if (singletonGame != null) {
             singletonGame.pauseGame();
             singletonGame.clearGameView();
@@ -651,24 +640,23 @@ public class Game extends Thread implements Serializable {
             objectOut = new ObjectOutputStream(fileOut);
             objectOut.writeObject(this);
             fileOut.getFD().sync();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
+        }
+        catch (IOException ignored) {}
+        finally {
             if (objectOut != null) {
                 try { objectOut.close(); }
-                catch (IOException e) {}
+                catch (IOException ignored) {}
             }
         }
     }
 
-    public static Game newGame(NewGameDialog.NewGameDialogData data) {
+    static void newGame(NewGameDialog.NewGameDialogData data) {
         if (singletonGame != null) {
             try {
                 MainActivity.mainActivity.getFileStreamPath(DUMP_FILE_NAME).delete();
             } catch (Exception e) { e.printStackTrace(); }
         }
         singletonGame = new Game(data);
-        return singletonGame;
     }
 
     public synchronized void startMove(int x, int y, PlayerType playerType) {

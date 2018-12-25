@@ -72,7 +72,7 @@ public class NewGameDialog extends DialogFragment {
         checkBoxP1.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 data.p1Name = editTextP1.getText().toString();
-                editTextP1.setText("CPU 1");
+                editTextP1.setText(getString(R.string.cpu_1_name));
                 editTextP1.setEnabled(false);
             } else {
                 editTextP1.setText(data.p1Name);
@@ -84,7 +84,7 @@ public class NewGameDialog extends DialogFragment {
         checkBoxP2.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 data.p2Name = editTextP2.getText().toString();
-                editTextP2.setText("CPU 2");
+                editTextP2.setText(getString(R.string.cpu_2_name));
                 editTextP2.setEnabled(false);
             } else {
                 editTextP2.setText(data.p2Name);
@@ -132,8 +132,8 @@ public class NewGameDialog extends DialogFragment {
             data.p2Cpu = checkBoxP2.isChecked();
             if (data.p1Flag == data.p2Flag) {
                 Toast.makeText(view.getContext(), "Chose different flags!", Toast.LENGTH_SHORT).show();
-            } else if ((data.p1Name.equals("CPU 1") && !data.p1Cpu) || data.p1Name.equals("CPU 2") ||
-                    data.p2Name.equals("CPU 1") || (data.p2Name.equals("CPU 2") && !data.p2Cpu)) {
+            } else if ((data.p1Name.equals(getString(R.string.cpu_1_name)) && !data.p1Cpu) || data.p1Name.equals(getString(R.string.cpu_2_name)) ||
+                    data.p2Name.equals(getString(R.string.cpu_1_name)) || (data.p2Name.equals(getString(R.string.cpu_2_name)) && !data.p2Cpu)) {
                 Toast.makeText(view.getContext(), "Can't use CPU reserved names for players!", Toast.LENGTH_SHORT).show();
             } else if (data.p1Name == data.p2Name) {
                 Toast.makeText(view.getContext(), "Players can't have the same name!", Toast.LENGTH_SHORT).show();

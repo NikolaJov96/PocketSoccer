@@ -2,7 +2,6 @@ package com.example.pocketsoccer;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -29,8 +28,6 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
 
     private LiveData<List<TwoUsersScore>> scores;
 
-    private Context context;
-
     static class ViewHolder extends RecyclerView.ViewHolder {
 
         View view;
@@ -49,10 +46,9 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
         }
     }
 
-    RecyclerViewAdapter(LiveData<List<TwoUsersScore>> scores, Context context, RecyclerViewClickListener recyclerViewClickListener) {
+    RecyclerViewAdapter(LiveData<List<TwoUsersScore>> scores, RecyclerViewClickListener recyclerViewClickListener) {
         this.recyclerViewClickListener = recyclerViewClickListener;
         this.scores = scores;
-        this.context = context;
     }
 
     @NonNull
@@ -66,8 +62,8 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
         viewHolder.player1Name.setText(scores.getValue().get(i).getFirstPlayerName());
         viewHolder.player2Name.setText(scores.getValue().get(i).getSecondPlayerName());
-        viewHolder.score1.setText(Integer.toString(scores.getValue().get(i).getFirstPlayerScore()));
-        viewHolder.score2.setText(Integer.toString(scores.getValue().get(i).getSecondPlayerScore()));
+        viewHolder.score1.setText(MainActivity.mainActivity.getResources().getString(R.string.one_number_format, scores.getValue().get(i).getFirstPlayerScore()));
+        viewHolder.score2.setText(MainActivity.mainActivity.getResources().getString(R.string.one_number_format, scores.getValue().get(2).getSecondPlayerScore()));
         viewHolder.view.setOnClickListener(v ->
                 recyclerViewClickListener.RecyclerViewClicked(
                         scores.getValue().get(i).getFirstPlayerName(),
@@ -92,7 +88,6 @@ public class PlayerStatisticsActivity extends AppCompatActivity implements Recyc
 
     private RecyclerView recyclerView;
     private RecyclerView.Adapter adapter;
-    private RecyclerView.LayoutManager layoutManager;
 
     private GameViewModel model;
 
@@ -102,9 +97,8 @@ public class PlayerStatisticsActivity extends AppCompatActivity implements Recyc
         setContentView(R.layout.activity_player_statistics);
 
         model = ViewModelProviders.of(this).get(GameViewModel.class);
-        Context context = this;
         model.getAllTwoPlayerScores().observe(this, scores -> {
-            adapter = new RecyclerViewAdapter(model.getAllTwoPlayerScores(), context, this);
+            adapter = new RecyclerViewAdapter(model.getAllTwoPlayerScores(), this);
             recyclerView.setAdapter(adapter);
             adapter.notifyDataSetChanged();
         });
@@ -116,7 +110,7 @@ public class PlayerStatisticsActivity extends AppCompatActivity implements Recyc
         backButton.setOnClickListener(v -> finish());
 
         recyclerView = findViewById(R.id.player_statistics_recycler_view);
-        layoutManager = new LinearLayoutManager(this);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
     }
 

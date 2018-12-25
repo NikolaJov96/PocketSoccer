@@ -7,7 +7,7 @@ import com.example.pocketsoccer.MainActivity;
 
 public class AppPreferences {
 
-    public enum EndGameConditions { TIMEOUT, SCORE };
+    public enum EndGameConditions { TIMEOUT, SCORE }
 
     private static AppPreferences singletonAP;
 
@@ -22,7 +22,7 @@ public class AppPreferences {
     private int endGameCondition;
     private int gameSpeed;
 
-    {
+    static {
         singletonAP = null;
     }
 

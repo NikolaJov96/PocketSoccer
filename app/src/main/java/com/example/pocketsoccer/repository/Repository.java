@@ -15,7 +15,6 @@ public class Repository {
 
     private ScoreDao scoreDao;
 
-    private LiveData<List<Score>> allScores;
     private LiveData<List<TwoUsersScore>> allTwoPlayerScores;
 
     public Repository(Context context) {
@@ -25,8 +24,7 @@ public class Repository {
     }
 
     public LiveData<List<Score>> getAllScores(GameViewModel.FilterStruct filterStruct) {
-        allScores = scoreDao.getAll(filterStruct.p1, filterStruct.p2);
-        return allScores;
+        return scoreDao.getAll(filterStruct.p1, filterStruct.p2);
     }
 
     public LiveData<List<TwoUsersScore>> getAllTwoPlayerScores() {

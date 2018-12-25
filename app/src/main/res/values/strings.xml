@@ -36,4 +36,9 @@
     <string name="player_1_name_hint">player 1 name</string>
     <string name="player_2_name_hint">player 2 name</string>
     <string name="score_separator">:</string>
+    <string name="cpu_1_name">CPU 1</string>
+    <string name="cpu_2_name">CPU 2</string>
+    <string name="one_number_format">%1d</string>
+    <string name="time_print_format">%1d:%1d</string>
+    <string name="scores_print_format">%1s - %1d : %1d - %1s</string>
 </resources>

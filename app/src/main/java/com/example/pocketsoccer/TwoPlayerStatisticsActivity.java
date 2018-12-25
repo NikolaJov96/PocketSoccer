@@ -25,8 +25,6 @@ class TwoPlayersRecyclerViewAdapter extends RecyclerView.Adapter<TwoPlayersRecyc
 
     private LiveData<List<Score>> scores;
 
-    private Context context;
-
     static class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView player1Name;
@@ -45,9 +43,8 @@ class TwoPlayersRecyclerViewAdapter extends RecyclerView.Adapter<TwoPlayersRecyc
         }
     }
 
-    TwoPlayersRecyclerViewAdapter(LiveData<List<Score>> scores, Context context) {
+    TwoPlayersRecyclerViewAdapter(LiveData<List<Score>> scores) {
         this.scores = scores;
-        this.context = context;
     }
 
     @NonNull
@@ -61,10 +58,10 @@ class TwoPlayersRecyclerViewAdapter extends RecyclerView.Adapter<TwoPlayersRecyc
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
         viewHolder.player1Name.setText(scores.getValue().get(i).getFirstPlayerName());
         viewHolder.player2Name.setText(scores.getValue().get(i).getSecondPlayerName());
-        viewHolder.score1.setText(Integer.toString(scores.getValue().get(i).getFirstPlayerScore()));
-        viewHolder.score2.setText(Integer.toString(scores.getValue().get(i).getSecondPlayerScore()));
+        viewHolder.score1.setText(MainActivity.mainActivity.getResources().getString(R.string.one_number_format, scores.getValue().get(i).getFirstPlayerScore()));
+        viewHolder.score2.setText(MainActivity.mainActivity.getResources().getString(R.string.one_number_format, scores.getValue().get(2).getSecondPlayerScore()));
         int t = scores.getValue().get(i).getGameDuration();
-        viewHolder.time.setText((t / 60) + ":" + (t % 60));
+        viewHolder.time.setText(MainActivity.mainActivity.getResources().getString(R.string.time_print_format, t / 60, t % 60));
     }
 
     @Override
@@ -106,17 +103,19 @@ public class TwoPlayerStatisticsActivity extends AppCompatActivity {
 
         model = ViewModelProviders.of(this).get(GameViewModel.class);
         model.updateFilter(new GameViewModel.FilterStruct(p1, p2));
-        Context context = this;
         model.getAllScores().observe(this, scores -> {
-            adapter = new TwoPlayersRecyclerViewAdapter(model.getAllScores(), context);
+            adapter = new TwoPlayersRecyclerViewAdapter(model.getAllScores());
             recyclerView.setAdapter(adapter);
             adapter.notifyDataSetChanged();
         });
         model.getAllTwoPlayerScores().observe(this, score -> {
-            for (TwoUsersScore twoUsersScore : model.getAllTwoPlayerScores().getValue()) {
-                if (twoUsersScore.getFirstPlayerName().equals(p1) && twoUsersScore.getSecondPlayerName().equals(p2)) {
-                    scoreTextView.setText(p1 + " - " + twoUsersScore.getFirstPlayerScore() + " : " + twoUsersScore.getSecondPlayerScore() + " - " + p2);
-                    break;
+            if (model.getAllTwoPlayerScores().getValue() != null) {
+                for (TwoUsersScore twoUsersScore : model.getAllTwoPlayerScores().getValue()) {
+                    if (twoUsersScore.getFirstPlayerName().equals(p1) && twoUsersScore.getSecondPlayerName().equals(p2)) {
+                        scoreTextView.setText(MainActivity.mainActivity.getResources().getString(R.string.scores_print_format,
+                                p1, twoUsersScore.getFirstPlayerScore(), twoUsersScore.getSecondPlayerScore(), p2));
+                        break;
+                    }
                 }
             }
         });

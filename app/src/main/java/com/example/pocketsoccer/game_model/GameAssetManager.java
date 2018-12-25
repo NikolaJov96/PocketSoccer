@@ -108,7 +108,7 @@ public class GameAssetManager {
 
     private boolean loaded;
 
-    {
+    static {
         singletonGAM = null;
     }
 

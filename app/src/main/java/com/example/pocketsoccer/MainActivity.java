@@ -19,8 +19,6 @@ public class MainActivity extends AppCompatActivity implements GameAssetManager.
 
     public SeekBar seekBar;
 
-    private GameViewModel model;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements GameAssetManager.
         seekBar = findViewById(R.id.game_loading_seek_bar);
         seekBar.setEnabled(false);
 
-        model = ViewModelProviders.of(this).get(GameViewModel.class);
+        GameViewModel model = ViewModelProviders.of(this).get(GameViewModel.class);
         if (model.getGameAssetManager().isLoaded()) {
             Intent intent = new Intent(this, MainMenuActivity.class);
             startActivityForResult(intent, MAIN_MENU_REQUEST_CODE);
