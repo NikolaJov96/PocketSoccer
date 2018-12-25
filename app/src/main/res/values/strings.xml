@@ -39,6 +39,6 @@
     <string name="cpu_1_name">CPU 1</string>
     <string name="cpu_2_name">CPU 2</string>
     <string name="one_number_format">%1d</string>
-    <string name="time_print_format">%1d:%1d</string>
+    <string name="time_print_format">%1d:%02d</string>
     <string name="scores_print_format">%1s - %1d : %1d - %1s</string>
 </resources>
