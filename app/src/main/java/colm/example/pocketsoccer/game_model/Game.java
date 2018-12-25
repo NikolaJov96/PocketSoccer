@@ -555,7 +555,9 @@ public class Game extends Thread implements Serializable {
         turn = side;
         timeOfTurnChange = SystemClock.elapsedRealtime();
         accumulatedTurnDuration = 0;
-        gameView.turn = turn;
+        if (gameView != null) {
+            gameView.turn = turn;
+        }
     }
 
     private void finalizeGame() {
