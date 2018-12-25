@@ -63,7 +63,7 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewH
         viewHolder.player1Name.setText(scores.getValue().get(i).getFirstPlayerName());
         viewHolder.player2Name.setText(scores.getValue().get(i).getSecondPlayerName());
         viewHolder.score1.setText(MainActivity.mainActivity.getResources().getString(R.string.one_number_format, scores.getValue().get(i).getFirstPlayerScore()));
-        viewHolder.score2.setText(MainActivity.mainActivity.getResources().getString(R.string.one_number_format, scores.getValue().get(2).getSecondPlayerScore()));
+        viewHolder.score2.setText(MainActivity.mainActivity.getResources().getString(R.string.one_number_format, scores.getValue().get(i).getSecondPlayerScore()));
         viewHolder.view.setOnClickListener(v ->
                 recyclerViewClickListener.RecyclerViewClicked(
                         scores.getValue().get(i).getFirstPlayerName(),

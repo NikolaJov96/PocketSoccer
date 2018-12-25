@@ -49,7 +49,6 @@ public class GameActivity extends Activity implements Game.GameEndListener {
 
     @Override
     public void gameFinished(String player1, String player2, int goals1, int goals2, int time) {
-
         Intent intent = new Intent();
         intent.putExtra(PLAYER_1_EXTRA, player1);
         intent.putExtra(PLAYER_2_EXTRA, player2);

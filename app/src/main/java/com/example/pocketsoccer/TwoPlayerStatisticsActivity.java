@@ -59,7 +59,7 @@ class TwoPlayersRecyclerViewAdapter extends RecyclerView.Adapter<TwoPlayersRecyc
         viewHolder.player1Name.setText(scores.getValue().get(i).getFirstPlayerName());
         viewHolder.player2Name.setText(scores.getValue().get(i).getSecondPlayerName());
         viewHolder.score1.setText(MainActivity.mainActivity.getResources().getString(R.string.one_number_format, scores.getValue().get(i).getFirstPlayerScore()));
-        viewHolder.score2.setText(MainActivity.mainActivity.getResources().getString(R.string.one_number_format, scores.getValue().get(2).getSecondPlayerScore()));
+        viewHolder.score2.setText(MainActivity.mainActivity.getResources().getString(R.string.one_number_format, scores.getValue().get(i).getSecondPlayerScore()));
         int t = scores.getValue().get(i).getGameDuration();
         viewHolder.time.setText(MainActivity.mainActivity.getResources().getString(R.string.time_print_format, t / 60, t % 60));
     }
@@ -129,6 +129,10 @@ public class TwoPlayerStatisticsActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.player_statistics_recycler_view);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
+        if (model.getAllScores() != null) {
+            adapter = new TwoPlayersRecyclerViewAdapter(model.getAllScores());
+            recyclerView.setAdapter(adapter);
+        }
 
         scoreTextView = findViewById(R.id.score_text_view);
     }

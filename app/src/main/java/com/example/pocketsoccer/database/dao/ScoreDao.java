@@ -23,12 +23,14 @@ public interface ScoreDao {
     @Query("SELECT COUNT(*) FROM score")
     int getNumberOfGames();
 
-    @Query("SELECT first_player_name, second_player_name, SUM(w1) AS first_player_wins, SUM(w2) AS second_player_wins FROM" +
+    @Query("SELECT first_player_name, second_player_name, SUM(w1) AS first_player_wins, SUM(w2) AS second_player_wins, SUM(p) FROM" +
             " (SELECT first_player_name, second_player_name, " +
             "   CASE WHEN first_player_score > second_player_score THEN 1 ELSE 0 END AS w1," +
-            "   CASE WHEN second_player_score > first_player_score THEN 1 ELSE 0 END AS w2" +
+            "   CASE WHEN second_player_score > first_player_score THEN 1 ELSE 0 END AS w2," +
+            "   second_player_score + first_player_score AS p" +
             "   FROM score)" +
-            " GROUP BY first_player_name, second_player_name")
+            " GROUP BY first_player_name, second_player_name" +
+            " ORDER BY p DESC")
     LiveData<List<TwoUsersScore>> getTwoUserScores();
 
     @Query("DELETE FROM score")
