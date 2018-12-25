@@ -149,6 +149,12 @@ public class NewGameDialog extends DialogFragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkBoxP2.setChecked(true);
+    }
+
     private void updateImages() {
         GameAssetManager gam = GameAssetManager.getGameAssetManager();
         flag1View.setImageBitmap(gam.getFlag(data.p1Flag));

@@ -3,10 +3,13 @@ package colm.example.pocketsoccer;
 import android.app.Activity;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
+import android.content.res.AssetManager;
+import android.media.MediaPlayer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 import colm.example.pocketsoccer.game_model.Game;
+import colm.example.pocketsoccer.game_model.GameAssetManager;
 import colm.example.pocketsoccer.game_model.GameViewModel;
 
 public class GameActivity extends Activity implements Game.GameEndListener {
@@ -18,6 +21,7 @@ public class GameActivity extends Activity implements Game.GameEndListener {
     public static final String TIME_EXTRA = "TIME_EXTRA";
 
     private GameView gameView;
+    private GameAssetManager gam;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +29,7 @@ public class GameActivity extends Activity implements Game.GameEndListener {
         setContentView(R.layout.activity_game);
 
         gameView = findViewById(R.id.game_graphics_view);
+        gam = GameAssetManager.getGameAssetManager();
     }
 
     @Override
@@ -57,5 +62,21 @@ public class GameActivity extends Activity implements Game.GameEndListener {
         intent.putExtra(TIME_EXTRA, time);
         setResult(Activity.RESULT_OK, intent);
         finish();
+    }
+
+    @Override
+    public void goalScored() {
+        gam.getGoalPlayer().start();
+    }
+
+    @Override
+    public void ballKicked() {
+        for (int i = 0; i < GameAssetManager.NUMBER_OF_SOUNDS - 1; i++) {
+            MediaPlayer mediaPlayer = gam.getKickPlayer(i);
+            if (!mediaPlayer.isPlaying()) {
+                mediaPlayer.start();
+                break;
+            }
+        }
     }
 }

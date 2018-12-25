@@ -187,6 +187,8 @@ public class Game extends Thread implements Serializable {
 
     public interface GameEndListener {
         void gameFinished(String player1, String player2, int goals1, int goals2, int time);
+        void goalScored();
+        void ballKicked();
     }
     private GameEndListener gameEndListener;
 
@@ -338,7 +340,7 @@ public class Game extends Thread implements Serializable {
                                 float x2 = allPacks[j].pos.x;
                                 float y2 = allPacks[j].pos.y;
 
-                                float inten1 = dst(0, 0, allPacks[i].vel.x, allPacks[i].vel.y);
+                                float intensity1 = dst(0, 0, allPacks[i].vel.x, allPacks[i].vel.y);
                                 float angle1 = (float) Math.PI / 2.0f;
                                 if (allPacks[i].vel.x != 0) {
                                     angle1 = (float) Math.atan(allPacks[i].vel.y / allPacks[i].vel.x);
@@ -349,7 +351,7 @@ public class Game extends Thread implements Serializable {
                                     angle1 += Math.PI;
                                     if (angle1 > Math.PI) angle1 -= 2 * Math.PI;
                                 }
-                                float inten2 = dst(0, 0, allPacks[j].vel.x, allPacks[j].vel.y);
+                                float intensity2 = dst(0, 0, allPacks[j].vel.x, allPacks[j].vel.y);
                                 float angle2 = (float) Math.PI / 2.0f;
                                 if (allPacks[j].vel.x != 0) {
                                     angle2 = (float) Math.atan(allPacks[j].vel.y / allPacks[j].vel.x);
@@ -363,23 +365,23 @@ public class Game extends Thread implements Serializable {
 
                                 float centerVecX = x2 - x1;
                                 float centerVecY = y2 - y1;
-                                float centerVecAngl = (float) Math.PI / 2.0f;
+                                float centerVecAngle = (float) Math.PI / 2.0f;
                                 if (centerVecX != 0) {
-                                    centerVecAngl = (float) Math.atan(centerVecY / centerVecX);
+                                    centerVecAngle = (float) Math.atan(centerVecY / centerVecX);
                                 } else if (centerVecY < 0) {
-                                    centerVecAngl += Math.PI / 2.0f;
+                                    centerVecAngle += Math.PI / 2.0f;
                                 }
                                 if (centerVecX < 0) {
-                                    centerVecAngl += Math.PI;
-                                    if (centerVecAngl > Math.PI) centerVecAngl -= 2 * Math.PI;
+                                    centerVecAngle += Math.PI;
+                                    if (centerVecAngle > Math.PI) centerVecAngle -= 2 * Math.PI;
                                 }
 
-                                float diffAngle1 = angle1 - centerVecAngl;
-                                float diffAngle2 = angle2 - centerVecAngl;
-                                float norm1 = Math.abs((float) Math.cos(diffAngle1) * inten1);
-                                float norm2 = Math.abs((float) Math.cos(diffAngle2) * inten2);
-                                float par1 = (float) Math.sin(diffAngle1) * inten1;
-                                float par2 = (float) Math.sin(diffAngle2) * inten2;
+                                float diffAngle1 = angle1 - centerVecAngle;
+                                float diffAngle2 = angle2 - centerVecAngle;
+                                float norm1 = Math.abs((float) Math.cos(diffAngle1) * intensity1);
+                                float norm2 = Math.abs((float) Math.cos(diffAngle2) * intensity2);
+                                float par1 = (float) Math.sin(diffAngle1) * intensity1;
+                                float par2 = (float) Math.sin(diffAngle2) * intensity2;
 
                                 float mass1 = allPacks[i].radius * allPacks[i].radius;
                                 float mass2 = allPacks[j].radius * allPacks[j].radius;
@@ -388,12 +390,16 @@ public class Game extends Thread implements Serializable {
                                 norm1 = accNorm * mass1 / (mass1 + mass2) / (allPacks[i].radius * allPacks[i].radius);
                                 norm2 = accNorm * mass2 / (mass1 + mass2) / (allPacks[j].radius * allPacks[j].radius);
 
-                                allPacks[i].vel.x = (float) (-Math.cos(centerVecAngl) * norm1 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
-                                allPacks[i].vel.y = (float) (-Math.sin(centerVecAngl) * norm1 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
+                                allPacks[i].vel.x = (float) (-Math.cos(centerVecAngle) * norm1 + Math.cos(centerVecAngle + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
+                                allPacks[i].vel.y = (float) (-Math.sin(centerVecAngle) * norm1 + Math.sin(centerVecAngle + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
                                 allPacks[i].rotVel += (par1 - par2) / 2.0 * PACK_PACK_SPIN_COEFFICIENT;
-                                allPacks[j].vel.x = (float) (Math.cos(centerVecAngl) * norm2 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par2) * BOUNCE_BLEED_COEFFICIENT;
-                                allPacks[j].vel.y = (float) (Math.sin(centerVecAngl) * norm2 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par2) * BOUNCE_BLEED_COEFFICIENT;
+                                allPacks[j].vel.x = (float) (Math.cos(centerVecAngle) * norm2 + Math.cos(centerVecAngle + Math.PI / 2.0f) * par2) * BOUNCE_BLEED_COEFFICIENT;
+                                allPacks[j].vel.y = (float) (Math.sin(centerVecAngle) * norm2 + Math.sin(centerVecAngle + Math.PI / 2.0f) * par2) * BOUNCE_BLEED_COEFFICIENT;
                                 allPacks[j].rotVel -= (par1 - par2) / 2.0 * PACK_PACK_SPIN_COEFFICIENT;
+
+                                if (j == 6) {
+                                    gameEndListener.ballKicked();
+                                }
                             }
                         }
                     }
@@ -476,26 +482,24 @@ public class Game extends Thread implements Serializable {
                             ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
                         players[1].goals++;
                         new Thread(() -> {
-                            try {
-                                Thread.sleep(SCORE_SLEEP_TIME);
-                            } catch (InterruptedException e) {
-                            }
+                            try { Thread.sleep(SCORE_SLEEP_TIME); }
+                            catch (InterruptedException ignored) {}
                             reinitPositions(Side.LEFT);
                         }).start();
                         goalScored = true;
+                        gameEndListener.goalScored();
                     }
                     if (ball.pos.x > FIELD_WIDTH - GOAL_WIDTH && ball.pos.x < FIELD_WIDTH &&
                             ball.pos.y > (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f &&
                             ball.pos.y < (FIELD_HEIGHT - GOAL_HEIGHT) / 2.0f + GOAL_HEIGHT) {
                         players[0].goals++;
                         new Thread(() -> {
-                            try {
-                                Thread.sleep(SCORE_SLEEP_TIME);
-                            } catch (InterruptedException e) {
-                            }
+                            try { Thread.sleep(SCORE_SLEEP_TIME); }
+                            catch (InterruptedException ignored) {}
                             reinitPositions(Side.RIGHT);
                         }).start();
                         goalScored = true;
+                        gameEndListener.goalScored();
                     }
                 }
 
@@ -538,7 +542,7 @@ public class Game extends Thread implements Serializable {
                     e.printStackTrace();
                 }
             }
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
         finalizeGame();
     }
 
@@ -594,7 +598,7 @@ public class Game extends Thread implements Serializable {
     }
 
     private void bounce(Pack pack, float x, float y) {
-        float inten1 = dst(0, 0, pack.vel.x, pack.vel.y);
+        float intensity1 = dst(0, 0, pack.vel.x, pack.vel.y);
         float angle1 = (float)Math.PI / 2.0f;
         if (pack.vel.x != 0) { angle1 = (float)Math.atan(pack.vel.y / pack.vel.x); }
         else if (pack.vel.y < 0) { angle1 += Math.PI / 2.0f; }
@@ -605,20 +609,20 @@ public class Game extends Thread implements Serializable {
 
         float centerVecX = x - pack.pos.x;
         float centerVecY = y - pack.pos.y;
-        float centerVecAngl = (float)Math.PI / 2.0f;
-        if (centerVecX != 0) { centerVecAngl = (float)Math.atan(centerVecY / centerVecX); }
-        else if (centerVecY < 0) { centerVecAngl += Math.PI / 2.0f; }
+        float centerVecAngle = (float)Math.PI / 2.0f;
+        if (centerVecX != 0) { centerVecAngle = (float)Math.atan(centerVecY / centerVecX); }
+        else if (centerVecY < 0) { centerVecAngle += Math.PI / 2.0f; }
         if (centerVecX < 0) {
-            centerVecAngl += Math.PI;
-            if (centerVecAngl > Math.PI) centerVecAngl -= 2 * Math.PI;
+            centerVecAngle += Math.PI;
+            if (centerVecAngle > Math.PI) centerVecAngle -= 2 * Math.PI;
         }
 
-        float diffAngle1 = angle1 - centerVecAngl;
-        float norm1 = Math.abs((float)Math.cos(diffAngle1) * inten1);
-        float par1 = (float)Math.sin(diffAngle1) * inten1;
+        float diffAngle1 = angle1 - centerVecAngle;
+        float norm1 = Math.abs((float)Math.cos(diffAngle1) * intensity1);
+        float par1 = (float)Math.sin(diffAngle1) * intensity1;
 
-        pack.vel.x = (float)(-Math.cos(centerVecAngl) * norm1 + Math.cos(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
-        pack.vel.y = (float)(-Math.sin(centerVecAngl) * norm1 + Math.sin(centerVecAngl + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
+        pack.vel.x = (float)(-Math.cos(centerVecAngle) * norm1 + Math.cos(centerVecAngle + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
+        pack.vel.y = (float)(-Math.sin(centerVecAngle) * norm1 + Math.sin(centerVecAngle + Math.PI / 2.0f) * par1) * BOUNCE_BLEED_COEFFICIENT;
         pack.rotVel -= par1 / 2.0 * PACK_PACK_SPIN_COEFFICIENT;
     }
 
