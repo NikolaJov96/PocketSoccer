@@ -2,6 +2,7 @@ package com.example.pocketsoccer.game_model;
 
 import android.app.Activity;
 import android.os.SystemClock;
+import android.view.animation.AccelerateInterpolator;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -180,6 +181,7 @@ public class Game extends Thread implements Serializable {
         void gameFinished(String player1, String player2, int goals1, int goals2, int time);
         void goalScored();
         void ballKicked();
+        void redraw();
     }
     private GameEndListener gameEndListener;
 
@@ -519,7 +521,7 @@ public class Game extends Thread implements Serializable {
                     gameView.rightScore = players[1].goals;
 
                     gameView.initialized = true;
-                    gameView.invalidate();
+                    gameEndListener.redraw();
                 }
 
                 long iterationDuration = SystemClock.elapsedRealtime() - iterationStartTime;
@@ -531,7 +533,7 @@ public class Game extends Thread implements Serializable {
                     e.printStackTrace();
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {}
         finalizeGame();
     }
 

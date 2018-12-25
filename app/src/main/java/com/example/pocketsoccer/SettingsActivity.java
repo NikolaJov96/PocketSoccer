@@ -75,7 +75,6 @@ public class SettingsActivity extends AppCompatActivity {
         scoreRadio = findViewById(R.id.score_radio);
 
         seekBar = findViewById(R.id.game_speed_seek_bar);
-        seekBar.setMin(0);
         seekBar.setMax(2);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override

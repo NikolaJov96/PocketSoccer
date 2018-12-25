@@ -74,4 +74,9 @@ public class GameActivity extends Activity implements Game.GameEndListener {
             }
         }
     }
+
+    @Override
+    public void redraw() {
+        runOnUiThread(() -> gameView.invalidate());
+    }
 }
