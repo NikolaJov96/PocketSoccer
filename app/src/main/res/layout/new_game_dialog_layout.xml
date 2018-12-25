@@ -37,7 +37,6 @@
                 android:text="@string/default_player1_name"
                 android:layout_gravity="center"
                 android:inputType="text"
-                android:importantForAutofill="no"
                 android:hint="@string/player_1_name_hint"
                 android:maxLength="20"/>
 
@@ -96,7 +95,6 @@
                 android:text="@string/default_player2_name"
                 android:layout_gravity="center"
                 android:inputType="text"
-                android:importantForAutofill="no"
                 android:hint="@string/player_2_name_hint"
                 android:maxLength="20"/>
 
