@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="colm.example.pocketsoccer">
+    package="com.example.pocketsoccer">
 
     <application
         android:allowBackup="true"
@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name="com.example.pocketsoccer.MainActivity"
             android:configChanges="orientation"
             android:screenOrientation="landscape">
             <intent-filter>
@@ -20,23 +20,23 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainMenuActivity"
+            android:name="com.example.pocketsoccer.MainMenuActivity"
             android:configChanges="orientation"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".GameActivity"
+            android:name="com.example.pocketsoccer.GameActivity"
             android:configChanges="orientation"
             android:screenOrientation="landscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
         <activity
-            android:name=".PlayerStatisticsActivity"
+            android:name="com.example.pocketsoccer.PlayerStatisticsActivity"
             android:configChanges="orientation"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".SettingsActivity"
+            android:name="com.example.pocketsoccer.SettingsActivity"
             android:configChanges="orientation"
             android:screenOrientation="landscape" />
-        <activity android:name=".TwoPlayerStatisticsActivity"></activity>
+        <activity android:name="com.example.pocketsoccer.TwoPlayerStatisticsActivity"></activity>
     </application>
 
 </manifest>
