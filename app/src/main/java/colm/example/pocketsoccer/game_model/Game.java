@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 
 import colm.example.pocketsoccer.GameView;
 import colm.example.pocketsoccer.MainActivity;
@@ -37,7 +36,7 @@ public class Game extends Thread implements Serializable {
     private static final float PACK_PACK_SPIN_COEFFICIENT = SPIN_COEFFICIENT * 3.0f;
     private static final float SPEED_BLEED_COEFFICIENT = 0.992f;
     private static final float BOUNCE_BLEED_COEFFICIENT = 0.93f;
-    private static final float GAME_SPEED_COEFFICIENT = 0.3f;
+    private static final float GAME_SPEED_COEFFICIENT = 0.5f;
 
     private static final long SCORE_SLEEP_TIME = 2500;
 
@@ -45,7 +44,7 @@ public class Game extends Thread implements Serializable {
 
     public enum Side { LEFT, RIGHT }
 
-    private enum PlayerType { HUMAN, CPU }
+    public enum PlayerType { HUMAN, CPU }
 
     private static class Vec2 implements Serializable {
 
@@ -94,13 +93,67 @@ public class Game extends Thread implements Serializable {
 
     }
 
-    private static class Player implements Serializable {
+    private class Player implements Serializable {
+
+        class GameBot {
+            private static final long AVERAGE_THINK_TIME = 1000 * 2;
+
+            private long move_start_time;
+            private long time_to_wait;
+            private boolean moveMade;
+            private Side lastTurn;
+
+            GameBot() {
+                init();
+            }
+
+            void init() {
+                move_start_time = SystemClock.elapsedRealtime();
+                time_to_wait = AVERAGE_THINK_TIME;
+                moveMade = false;
+                if (side == Side.LEFT) {
+                    lastTurn = Side.RIGHT;
+                } else {
+                    lastTurn = Side.LEFT;
+                }
+            }
+
+            void stepMove() {
+                if (Game.this.turn.equals(lastTurn) && lastTurn.equals(side)) {
+                    // wait for time to make move and make move
+                    if (SystemClock.elapsedRealtime() - move_start_time > time_to_wait && !moveMade) {
+                        double rnd = Math.random();
+                        int packId = 0;
+                        if (rnd < 0.333) {
+                            packId = 1;
+                        } else if (rnd < 0.666) {
+                            packId = 2;
+                        }
+                        int x = (int)(packs[packId].pos.x * Game.this.gameView.effectiveWidth + Game.this.gameView.leftSpacing);
+                        int y = (int)(packs[packId].pos.y * Game.this.gameView.effectiveWidth + Game.this.gameView.topSpacing);
+                        Game.this.startMove(x, y, PlayerType.CPU);
+                        x = (int)(Game.this.ball.pos.x * Game.this.gameView.effectiveWidth + Game.this.gameView.leftSpacing);
+                        y = (int)(Game.this.ball.pos.y * Game.this.gameView.effectiveWidth + Game.this.gameView.topSpacing);
+                        Game.this.endMove(x, y);
+                        moveMade = true;
+                    }
+                } else if (Game.this.turn.equals(side) && !lastTurn.equals(side)) {
+                    // detect move beginning
+                    move_start_time = SystemClock.elapsedRealtime();
+                    time_to_wait = (long)(AVERAGE_THINK_TIME * (0.75 + 0.25 * Math.random()) * (0.3 + 0.7 / (1.0 + Game.this.apGameSpeed)));
+                    moveMade = false;
+                }
+                lastTurn = Game.this.turn;
+            }
+        }
 
         Pack packs[];
         int goals;
         String name;
         int flag;
+        Side side;
         PlayerType playerType;
+        private GameBot gameBot;
 
         Player(Side side, String name, int flag, PlayerType playerType) {
             packs = new Pack[3];
@@ -114,7 +167,19 @@ public class Game extends Thread implements Serializable {
             goals = 0;
             this.name = name;
             this.flag = flag;
+            this.side = side;
             this.playerType = playerType;
+            if (playerType == PlayerType.CPU) {
+                gameBot = new GameBot();
+            } else {
+                gameBot = null;
+            }
+        }
+
+        void stepMove() {
+            if (playerType == PlayerType.CPU) {
+                gameBot.stepMove();
+            }
         }
     }
 
@@ -238,12 +303,17 @@ public class Game extends Thread implements Serializable {
                 long iterationStartTime = SystemClock.elapsedRealtime();
 
                 synchronized (this) {
+                    // check timeouts
                     if (accumulatedGameDuration + SystemClock.elapsedRealtime() - timeOfLastResume > MAX_GAME_DURATION) {
                         finalizeGame();
                     }
                     if (accumulatedTurnDuration + SystemClock.elapsedRealtime() - timeOfTurnChange > TURN_TIME) {
                         changeTurn();
                     }
+
+                    // step bots
+                    players[0].stepMove();
+                    players[1].stepMove();
 
                     // update pack and ball positions
                     float dt = (SystemClock.elapsedRealtime() - lastUpdateTime) * 0.001f * (1.0f + apGameSpeed * GAME_SPEED_COEFFICIENT);
@@ -595,27 +665,26 @@ public class Game extends Thread implements Serializable {
         return singletonGame;
     }
 
-    public synchronized void startMove(int x, int y) {
+    public synchronized void startMove(int x, int y, PlayerType playerType) {
         clickedX = ((float)x - leftSpacing) / gameView.effectiveWidth;
         clickedY = ((float)y - topSpacing) / gameView.effectiveWidth;
         clickedPack = null;
         int p = 0;
-        if (turn == Side.RIGHT) {
-            p = 1;
-        }
-        for (int i = 0; i < 3; i++) {
+        if (turn == Side.RIGHT) { p = 1; }
+        if (players[p].playerType.equals(playerType)) {for (int i = 0; i < 3; i++) {
             float distSq = dstSq(clickedX, clickedY, players[p].packs[i].pos.x, players[p].packs[i].pos.y);
             if (distSq < PACK_RADIUS * PACK_RADIUS) {
                 clickedPack = players[p].packs[i];
                 return;
             }
         }
+        }
     }
 
     public synchronized void endMove(int x, int y) {
-        float relX = ((float)x - leftSpacing) / gameView.effectiveWidth;
-        float relY = ((float)y - topSpacing) / gameView.effectiveWidth;
         if (clickedPack != null) {
+            float relX = ((float)x - leftSpacing) / gameView.effectiveWidth;
+            float relY = ((float)y - topSpacing) / gameView.effectiveWidth;
             clickedPack.vel.x += (relX - clickedX) * KICK_COEFFICIENT;
             clickedPack.vel.y += (relY - clickedY) * KICK_COEFFICIENT;
             changeTurn();

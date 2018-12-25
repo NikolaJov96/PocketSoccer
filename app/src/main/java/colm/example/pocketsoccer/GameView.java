@@ -100,7 +100,7 @@ public class GameView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            game.startMove((int)event.getX(), (int)event.getY());
+            game.startMove((int)event.getX(), (int)event.getY(), Game.PlayerType.HUMAN);
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
             game.endMove((int)event.getX(), (int)event.getY());
             performClick();
