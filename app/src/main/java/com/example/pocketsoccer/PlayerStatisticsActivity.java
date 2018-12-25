@@ -112,6 +112,10 @@ public class PlayerStatisticsActivity extends AppCompatActivity implements Recyc
         recyclerView = findViewById(R.id.player_statistics_recycler_view);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
+        if (model.getAllTwoPlayerScores() != null) {
+            adapter = new RecyclerViewAdapter(model.getAllTwoPlayerScores(), this);
+            recyclerView.setAdapter(adapter);
+        }
     }
 
     @Override
