@@ -93,7 +93,7 @@ public class GameAssetManager {
     }
 
     public static final int NUMBER_OF_FIELDS = 3;
-    public static final int NUMBER_OF_FLAGS = 5;
+    public static final int NUMBER_OF_FLAGS = 6;
     public static final int NUMBER_OF_BALLS = 1;
     public static final int NUMBER_OF_SOUNDS = 7;
 
