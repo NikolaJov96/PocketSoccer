@@ -115,24 +115,75 @@ public class Game extends Thread implements Serializable {
                     // wait for time to make move and make move
                     if (SystemClock.elapsedRealtime() - move_start_time > time_to_wait && !moveMade) {
                         double rnd = Math.random();
+                        // random
                         int packId = 0;
                         if (rnd < 0.333) {
                             packId = 1;
                         } else if (rnd < 0.666) {
                             packId = 2;
                         }
-                        int x = (int)(packs[packId].pos.x * Game.this.gameView.effectiveWidth + Game.this.gameView.leftSpacing);
-                        int y = (int)(packs[packId].pos.y * Game.this.gameView.effectiveWidth + Game.this.gameView.topSpacing);
-                        Game.this.startMove(x, y, PlayerType.CPU);
-                        x = (int)(Game.this.ball.pos.x * Game.this.gameView.effectiveWidth + Game.this.gameView.leftSpacing);
-                        y = (int)(Game.this.ball.pos.y * Game.this.gameView.effectiveWidth + Game.this.gameView.topSpacing);
-                        Game.this.endMove(x, y);
+                        float dist1 = dst(packs[0].pos.x, packs[0].pos.y, Game.this.ball.pos.x, Game.this.ball.pos.y);
+                        float dist2 = dst(packs[1].pos.x, packs[1].pos.y, Game.this.ball.pos.x, Game.this.ball.pos.y);
+                        float dist3 = dst(packs[2].pos.x, packs[2].pos.y, Game.this.ball.pos.x, Game.this.ball.pos.y);
+                        // closest
+                        if (dist1 < dist2 && dist1 < dist3) {
+                            packId = 0;
+                        } else if (dist2 < dist1 && dist2 < dist3) {
+                            packId = 1;
+                        } else if (dist3 < dist1 && dist3 < dist2) {
+                            packId = 2;
+                        }
+                        // closest to the left
+                        if (packs[packId].pos.x > ball.pos.x && side == Side.LEFT ||
+                                packs[packId].pos.x < ball.pos.x && side == Side.RIGHT) {
+                            if (packs[0].pos.x < ball.pos.x && side == Side.LEFT ||
+                                    packs[0].pos.x > ball.pos.x && side == Side.RIGHT
+                            ) {
+                                packId = 0;
+                            } else if (packs[1].pos.x < ball.pos.x && side == Side.LEFT ||
+                                    packs[1].pos.x > ball.pos.x && side == Side.RIGHT
+                            ) {
+                                packId = 1;
+                            } else if (packs[2].pos.x < ball.pos.x && side == Side.LEFT ||
+                                    packs[2].pos.x > ball.pos.x && side == Side.RIGHT
+                            ) {
+                                packId = 2;
+                            }
+                        }
+
+                        boolean firstMove = false;
+                        if (Math.abs(packs[packId].pos.y - ball.pos.y) < 0.02f) {
+                            if (Math.random() < 0.5f) {
+                                packId = 0;
+                            } else {
+                                packId = 2;
+                            }
+                            firstMove = true;
+                        }
+
+                        float force = dst(packs[packId].pos.x, packs[packId].pos.y, Game.this.ball.pos.x, Game.this.ball.pos.y );
+                        float x = (packs[packId].pos.x * Game.this.gameView.effectiveWidth + Game.this.gameView.leftSpacing);
+                        float y = (packs[packId].pos.y * Game.this.gameView.effectiveWidth + Game.this.gameView.topSpacing);
+                        Game.this.startMove((int)x, (int)y, PlayerType.CPU);
+                        float correction = PACK_RADIUS;
+                        if (side == Side.LEFT) {
+                            correction *= -1;
+                        }
+                        if (firstMove) {
+                            correction *= -3;
+                        }
+                        float x2 = ((Game.this.ball.pos.x + correction) * Game.this.gameView.effectiveWidth + Game.this.gameView.leftSpacing);
+                        float y2 = (Game.this.ball.pos.y * Game.this.gameView.effectiveWidth + Game.this.gameView.topSpacing);
+
+                        x2 = x2 + (x2 - x) / (0.7f + 0.3f * force);
+                        y2 = y2 + (y2 - y) / (0.7f + 0.3f * force);
+                        Game.this.endMove((int)x2, (int)y2);
                         moveMade = true;
                     }
                 } else if (Game.this.turn.equals(side) && !lastTurn.equals(side)) {
                     // detect move beginning
                     move_start_time = SystemClock.elapsedRealtime();
-                    time_to_wait = (long)(AVERAGE_THINK_TIME * (0.75 + 0.25 * Math.random()) * (0.3 + 0.7 / (1.0 + Game.this.apGameSpeed)));
+                    time_to_wait = (long)(AVERAGE_THINK_TIME * (0.75 + 0.25 * Math.random()) * (0.2 + 0.8 / (1.0 + Game.this.apGameSpeed)));
                     moveMade = false;
                 }
                 lastTurn = Game.this.turn;
@@ -153,7 +204,18 @@ public class Game extends Thread implements Serializable {
                 float x = FIELD_WIDTH * 0.2f;
                 if (i == 1) x *= 2.0f;
                 if (side.equals(Side.RIGHT)) x = FIELD_WIDTH - x;
-                float y = FIELD_HEIGHT * 0.25f * (i + 1);
+                float y = 0.0f;
+                switch (i) {
+                    case 0:
+                        y = FIELD_HEIGHT * 0.21f;
+                        break;
+                    case 1:
+                        y = FIELD_HEIGHT * 0.5f;
+                        break;
+                    case 2:
+                        y = FIELD_HEIGHT * 0.79f;
+                        break;
+                }
                 packs[i] = new Pack(new Vec2(x, y), PACK_RADIUS);
             }
             goals = 0;
